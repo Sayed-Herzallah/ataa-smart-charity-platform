@@ -177,7 +177,7 @@ async function fetchDonations() {
 }
 
 /* =========================
-   RENDER DONATIONS PAGE (Client-Side Pagination & Rich details)
+   RENDER DONATIONS PAGE (Client-Side Pagination & Clickable Cards)
 ========================= */
 function renderDonationsPage() {
     const grid = document.getElementById("donations-grid");
@@ -213,13 +213,13 @@ function renderDonationsPage() {
                     <div class="d-flex gap-2">
                         <button
                             class="btn btn-sm btn-success text-white px-3"
-                            onclick="updateDonationStatus('${item._id}', 'accepted', this)"
+                            onclick="updateDonationStatus('${item._id}', 'accepted', this); event.stopPropagation();"
                         >
                            قبول
                         </button>
                         <button
                             class="btn btn-sm btn-danger text-white px-3"
-                            onclick="updateDonationStatus('${item._id}', 'rejected', this)"
+                            onclick="updateDonationStatus('${item._id}', 'rejected', this); event.stopPropagation();"
                         >
                            رفض
                         </button>
@@ -228,41 +228,41 @@ function renderDonationsPage() {
             }
 
             // Image extraction (Handles mongoose schema: imageUrl: [ { secure_url: "..." } ])
-        let imageHtml = "";
-        let imageSrc = "";
-        
-        if (item.imageUrl && item.imageUrl.length > 0) {
-            const first = item.imageUrl[0];
-            if (first && typeof first === 'object' && first.secure_url) {
-                imageSrc = first.secure_url;
-            } else if (typeof first === 'string') {
-                imageSrc = first;
-            } else if (typeof item.imageUrl === 'string') {
-                imageSrc = item.imageUrl;
+            let imageHtml = "";
+            let imageSrc = "";
+            
+            if (item.imageUrl && item.imageUrl.length > 0) {
+                const first = item.imageUrl[0];
+                if (first && typeof first === 'object' && first.secure_url) {
+                    imageSrc = first.secure_url;
+                } else if (typeof first === 'string') {
+                    imageSrc = first;
+                } else if (typeof item.imageUrl === 'string') {
+                    imageSrc = item.imageUrl;
+                }
+            } else if (item.images && item.images.length > 0) {
+                const first = item.images[0];
+                if (first && typeof first === 'object' && (first.secure_url || first.url)) {
+                    imageSrc = first.secure_url || first.url;
+                } else if (typeof first === 'string') {
+                    imageSrc = first;
+                }
+            } else if (typeof item.image === 'string') {
+                imageSrc = item.image;
+            } else if (item.image && typeof item.image === 'object' && item.image.secure_url) {
+                imageSrc = item.image.secure_url;
             }
-        } else if (item.images && item.images.length > 0) {
-            const first = item.images[0];
-            if (first && typeof first === 'object' && (first.secure_url || first.url)) {
-                imageSrc = first.secure_url || first.url;
-            } else if (typeof first === 'string') {
-                imageSrc = first;
-            }
-        } else if (typeof item.image === 'string') {
-            imageSrc = item.image;
-        } else if (item.image && typeof item.image === 'object' && item.image.secure_url) {
-            imageSrc = item.image.secure_url;
-        }
 
-        if (imageSrc && typeof imageSrc === 'string') {
-            if (imageSrc.startsWith('/')) {
-                imageSrc = BASE_URL + imageSrc;
-            }
-            imageHtml = `
-                <div class="donation-card-img-wrap" style="height: 180px; overflow: hidden; border-radius: 12px; margin-bottom: 16px; border: 1px solid #e5e7eb;">
-                    <img src="${imageSrc}" alt="صورة التبرع" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.style.display='none'">
-                </div>
-            `;
-        }    
+            if (imageSrc && typeof imageSrc === 'string') {
+                if (imageSrc.startsWith('/')) {
+                    imageSrc = BASE_URL + imageSrc;
+                }
+                imageHtml = `
+                    <div class="donation-card-img-wrap" style="height: 180px; overflow: hidden; border-radius: 12px; margin-bottom: 16px; border: 1px solid #e5e7eb;">
+                        <img src="${imageSrc}" alt="صورة التبرع" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.style.display='none'">
+                    </div>
+                `;
+            }    
 
             // Format Date
             let dateStr = "";
@@ -273,7 +273,7 @@ function renderDonationsPage() {
             }
 
             return `
-                <div class="donation-card">
+                <div class="donation-card" onclick="showDonationDetails('${item._id}')" style="cursor: pointer;">
                     ${imageHtml}
                     <div class="donation-card-header" style="display:flex; justify-content:space-between; align-items:center; width:100%; border-bottom:1px solid #f3f4f6; padding-bottom:10px; margin-bottom:12px;">
                         <span class="type-badge" style="background: rgba(27, 75, 90, 0.08); color: #1b4b5a; padding: 4px 12px; border-radius: 30px; font-weight: 700; font-size:12.5px;">${item.type || "تبرع ملابس"}</span>
@@ -289,7 +289,7 @@ function renderDonationsPage() {
                             ${item.description ? `
                             <div style="border-top: 1px dashed #f3f4f6; padding-top: 8px; margin-top: 8px;">
                                 <strong>الوصف:</strong>
-                                <p style="margin: 4px 0 0 0; font-size: 12.5px; color: #6b7280; line-height: 1.5;">${item.description}</p>
+                                <p style="margin: 4px 0 0 0; font-size: 12.5px; color: #6b7280; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.description}</p>
                             </div>
                             ` : ''}
                         </div>
@@ -319,6 +319,107 @@ function renderDonationsPage() {
         `;
     }
 }
+
+/* =========================
+   SHOW DONATION DETAILS MODAL
+========================= */
+window.showDonationDetails = function(id) {
+    const item = allDonations.find(d => d._id === id);
+    if (!item) return;
+
+    const modalBody = document.getElementById("donationDetailsBody");
+    if (!modalBody) return;
+
+    // Image extraction
+    let imageSrc = "";
+    if (item.imageUrl && item.imageUrl.length > 0) {
+        imageSrc = item.imageUrl[0].secure_url;
+    } else if (item.images && item.images.length > 0) {
+        imageSrc = item.images[0].secure_url || item.images[0].url || item.images[0];
+    } else if (item.image) {
+        imageSrc = item.image;
+    }
+
+    if (imageSrc && typeof imageSrc === 'string' && imageSrc.startsWith('/')) {
+        imageSrc = BASE_URL + imageSrc;
+    }
+
+    // Format Date
+    let dateStr = "غير محدد";
+    if (item.createdAt) {
+        try {
+            dateStr = new Date(item.createdAt).toLocaleDateString('ar-EG', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        } catch (e) {}
+    }
+
+    // Status translation
+    let statusBadge = "";
+    const status = (item.status || "pending").toLowerCase();
+    if (status === "accepted" || status === "approved") {
+        statusBadge = `<span class="badge bg-success fs-6" style="padding:6px 14px;">✓ تم القبول</span>`;
+    } else if (status === "rejected" || status === "refused") {
+        statusBadge = `<span class="badge bg-danger fs-6" style="padding:6px 14px;">✕ تم الرفض</span>`;
+    } else {
+        statusBadge = `<span class="badge bg-warning text-dark fs-6" style="padding:6px 14px;">⏳ قيد الانتظار</span>`;
+    }
+
+    // Donor info
+    const donor = item.donorId || {};
+    const donorName = donor.userName || "غير معروف";
+    const donorEmail = donor.email || "غير متوفر";
+    const donorPhone = donor.phone || "غير متوفر";
+    const donorAddress = donor.address || "غير متوفر";
+
+    modalBody.innerHTML = `
+        <div class="row g-4" style="direction: rtl; text-align: right;">
+            ${imageSrc ? `
+            <div class="col-md-5 text-center">
+                <div class="shadow-sm rounded-3 overflow-hidden border" style="height: 320px; background: #f9fafb;">
+                    <img src="${imageSrc}" alt="صورة التبرع" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            </div>
+            ` : ''}
+            <div class="${imageSrc ? 'col-md-7' : 'col-md-12'}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge bg-teal-light text-teal fw-bold fs-6 px-3 py-2" style="background: rgba(27,75,90,0.1); color: #1b4b5a;">${item.type || "تبرع ملابس"}</span>
+                    ${statusBadge}
+                </div>
+                
+                <h5 class="fw-bold mb-3 pb-2 text-teal" style="border-bottom: 2px solid #f3f4f6; color:#1b4b5a;"><i class="fa-solid fa-user me-1"></i> بيانات المتبرع</h5>
+                <div class="row g-2 mb-4" style="font-size: 14px; color:#4b5563;">
+                    <div class="col-6"><strong>الاسم:</strong> ${donorName}</div>
+                    <div class="col-6"><strong>الهاتف:</strong> ${donorPhone}</div>
+                    <div class="col-6"><strong>البريد:</strong> ${donorEmail}</div>
+                    <div class="col-6"><strong>العنوان:</strong> ${donorAddress}</div>
+                </div>
+
+                <h5 class="fw-bold mb-3 pb-2 text-teal" style="border-bottom: 2px solid #f3f4f6; color:#1b4b5a;"><i class="fa-solid fa-box me-1"></i> تفاصيل التبرع</h5>
+                <div class="row g-2 mb-4" style="font-size: 14px; color:#4b5563;">
+                    <div class="col-4"><strong>المقاس:</strong> ${item.size || "-"}</div>
+                    <div class="col-4"><strong>الكمية:</strong> ${item.quantity || 0}</div>
+                    <div class="col-4"><strong>الحالة:</strong> ${item.condition || "-"}</div>
+                    <div class="col-12 mt-2"><strong>تاريخ التبرع:</strong> ${dateStr}</div>
+                </div>
+
+                ${item.description ? `
+                <h5 class="fw-bold mb-2 text-teal" style="color:#1b4b5a;"><i class="fa-solid fa-comment-dots me-1"></i> وصف التبرع</h5>
+                <div class="p-3 bg-light rounded-3" style="font-size: 13.5px; line-height: 1.6; color: #4b5563; max-height: 120px; overflow-y: auto;">
+                    ${item.description}
+                </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+
+    const modalEl = document.getElementById("donationDetailsModal");
+    if (modalEl) {
+        const modalInstance = new bootstrap.Modal(modalEl);
+        modalInstance.show();
+    }
+};
 
 /* =========================
    PAGINATION
@@ -416,7 +517,7 @@ async function loadNotifications() {
         if (!notifications.length) {
 
             notificationList.innerHTML = `
-                <li class="list-group-item text-center text-muted">
+                <li class="text-center text-muted p-3">
                     لا توجد إشعارات حالياً
                 </li>
             `;
@@ -427,11 +528,9 @@ async function loadNotifications() {
         notificationList.innerHTML =
             notifications.map(notification => `
 
-                <li
-                    class="list-group-item d-flex justify-content-between align-items-center"
-                >
+                <li class="dropdown-item d-flex justify-content-between align-items-center p-2 mb-1" style="white-space: normal; border-bottom: 1px solid #f3f4f6;">
 
-                    <span>
+                    <span style="flex-grow: 1; margin-left: 10px; font-size: 12.5px; text-align: right;">
                         ${
                             notification.message ||
                             notification.title ||
@@ -439,20 +538,20 @@ async function loadNotifications() {
                         }
                     </span>
 
-                    <div class="d-flex gap-1">
+                    <div class="d-flex gap-1 flex-shrink-0">
 
                         <button
-                            class="btn btn-sm btn-success text-white"
-                            style="padding: 2px 8px;"
-                            onclick="markNotificationAsRead('${notification._id}')"
+                            class="btn btn-sm btn-success text-white px-2 py-0"
+                            style="font-size: 11px;"
+                            onclick="markNotificationAsRead('${notification._id}'); event.stopPropagation();"
                         >
                             ✓
                         </button>
 
                         <button
-                            class="btn btn-sm btn-danger text-white"
-                            style="padding: 2px 8px;"
-                            onclick="deleteNotification('${notification._id}')"
+                            class="btn btn-sm btn-danger text-white px-2 py-0"
+                            style="font-size: 11px;"
+                            onclick="deleteNotification('${notification._id}'); event.stopPropagation();"
                         >
                             ✕
                         </button>
@@ -539,3 +638,8 @@ async function deleteNotification(id) {
         console.log(error);
     }
 }
+
+// Expose functions globally to ensure HTML onclick attribute calls resolve correctly
+window.loadNotifications = loadNotifications;
+window.markNotificationAsRead = markNotificationAsRead;
+window.deleteNotification = deleteNotification;

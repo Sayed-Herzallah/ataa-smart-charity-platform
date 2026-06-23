@@ -387,51 +387,47 @@ if (navActions) {
     // ===============================
     // Logged User Navbar
     // ===============================
-    navActions.innerHTML = `
-      <span class="user-name">
-        مرحباً 👋
-      </span>
-
-      <a class="nav-btn-settings"
-         href="settings.html"
-         title="الإعدادات">
-         ⚙️
-      </a>
-
-      <a class="nav-btn-signup"
-         href="${dashboardLink}">
-        Dashboard
-      </a>
-
-      <button class="nav-btn-login"
-              id="logoutBtn">
-        تسجيل خروج
-      </button>
-    `;
-
-    // ===============================
-    // Logout
-    // ===============================
-    document
-      .getElementById(
-        "logoutBtn"
-      )
-      ?.addEventListener(
-        "click",
-        () => {
-
-          localStorage.removeItem(
-            "token"
+    if (document.getElementById("notificationsDropdown")) {
+        document
+          .getElementById(
+            "logoutBtn"
+          )
+          ?.addEventListener(
+            "click",
+            logout
           );
+    } else {
+        navActions.innerHTML = `
+          <span class="user-name">
+            مرحباً 👋
+          </span>
 
-          localStorage.removeItem(
-            "user"
+          <a class="nav-btn-settings"
+             href="settings.html"
+             title="الإعدادات">
+             ⚙️
+          </a>
+
+          <a class="nav-btn-signup"
+             href="${dashboardLink}">
+            Dashboard
+          </a>
+
+          <button class="nav-btn-login"
+                  id="logoutBtn">
+            تسجيل خروج
+          </button>
+        `;
+
+        document
+          .getElementById(
+            "logoutBtn"
+          )
+          ?.addEventListener(
+            "click",
+            logout
           );
-
-          window.location.href =
-            "index.html";
-        }
-      );
+    }
   }
 }
   }
@@ -636,3 +632,7 @@ document
         "click",
         logout
     );
+
+// Expose functions globally to ensure HTML inline attributes can access them
+window.handleSubmit = handleSubmit;
+window.logout = logout;
