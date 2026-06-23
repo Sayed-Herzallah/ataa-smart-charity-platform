@@ -131,13 +131,31 @@
     <h4 class="fw-bold px-2 mb-4">لوحة تحكم الجمعية</h4>
  <div class="row g-4 mb-4">
       <div class="col-md-4">
-        <div class="stat-card blue"><p>تبرعات واردة</p><h4 id="total-donations">0</h4></div>
+        <div class="stat-card stat-total">
+          <div class="stat-icon"><i class="fa-solid fa-box-open"></i></div>
+          <div class="stat-info">
+            <p>إجمالي التبرعات</p>
+            <h4 id="total-donations">0</h4>
+          </div>
+        </div>
       </div>
       <div class="col-md-4">
-        <div class="stat-card green"><p>طلبات مستفيدين</p><h4 id="beneficiary-requests">0</h4></div>
+        <div class="stat-card stat-pending">
+          <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
+          <div class="stat-info">
+            <p>تبرعات معلقة</p>
+            <h4 id="beneficiary-requests">0</h4>
+          </div>
+        </div>
       </div>
       <div class="col-md-4">
-        <div class="stat-card purple"><p>متطوعون نشطون</p><h4 id="active-volunteers">0</h4></div>
+        <div class="stat-card stat-accepted">
+          <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="stat-info">
+            <p>تبرعات مقبولة</p>
+            <h4 id="active-volunteers">0</h4>
+          </div>
+        </div>
       </div>
       <div class="row mb-4">
     <div class="col-12">

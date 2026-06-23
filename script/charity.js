@@ -158,7 +158,6 @@ async function fetchDonations() {
             `${BASE_URL}/dashboard/donations`,
             {
                 method: "GET",
-
                 headers: {
                     Authorization: token
                 }
@@ -166,97 +165,77 @@ async function fetchDonations() {
         );
 
         const data = await response.json();
-
         console.log("DONATIONS:", data);
 
-        const donations =
-            data.donations ||
-            data.data ||
-            [];
-
-        const list =
-            document.getElementById("donations-list");
+        const donations = data.donations || data.data || [];
+        const list = document.getElementById("donations-list");
 
         if (!donations.length) {
-
             list.innerHTML = `
                 <li class="list-group-item text-center">
                     لا توجد تبرعات حالياً
                 </li>
             `;
-
             return;
         }
 
-        list.innerHTML = donations.map(item => `
+        list.innerHTML = donations.map(item => {
+            let actionsHtml = "";
+            const status = (item.status || "pending").toLowerCase();
 
-            <li class="list-group-item border-0 p-0 mb-2 mt-3">
-
-                <div
-                    class="request-box"
-                    style="
-                        padding:15px;
-                        border:1px solid #ddd;
-                        border-radius:8px;
-                        display:flex;
-                        justify-content:space-between;
-                        align-items:center;
-                    "
-                >
-
-                    <div class="text-box">
-
-                        <span class="text fw-bold">
-                            ${item.type || "تبرع جديد"}
-                        </span>
-
-                        <br>
-
-                        <small class="text-muted">
-                            المقاس: ${item.size || "-"} |
-                            الكمية: ${item.quantity || 0}
-                        </small>
-
-                    </div>
-
+            if (status === "accepted" || status === "approved") {
+                actionsHtml = `<span class="badge bg-success">✓ تم القبول</span>`;
+            } else if (status === "rejected" || status === "refused") {
+                actionsHtml = `<span class="badge bg-danger">✕ تم الرفض</span>`;
+            } else {
+                actionsHtml = `
                     <div class="d-flex gap-2">
-
                         <button
-                            class="fw-bold"
-                            style="
-                                background-color:#1b4b5a;
-                                color:white;
-                                border:none;
-                                padding:7px 15px;
-                                border-radius:5px;
-                            "
-                            onclick="requestDonation('${item._id}', this)"
+                            class="btn btn-sm btn-success text-white px-3"
+                            onclick="updateDonationStatus('${item._id}', 'accepted', this)"
                         >
-                           قبول التبرع
+                           قبول
                         </button>
-
+                        <button
+                            class="btn btn-sm btn-danger text-white px-3"
+                            onclick="updateDonationStatus('${item._id}', 'rejected', this)"
+                        >
+                           رفض
+                        </button>
                     </div>
+                `;
+            }
 
-                </div>
-
-            </li>
-
-        `).join("");
+            return `
+                <li class="list-group-item border-0 p-0 mb-2 mt-3">
+                    <div class="request-box">
+                        <div class="text-box">
+                            <span class="text fw-bold">
+                                ${item.type || "تبرع جديد"}
+                            </span>
+                            <small class="text-muted">
+                                المقاس: ${item.size || "-"} |
+                                الكمية: ${item.quantity || 0}
+                            </small>
+                        </div>
+                        <div class="actions-container">
+                            ${actionsHtml}
+                        </div>
+                    </div>
+                </li>
+            `;
+        }).join("");
 
     } catch (error) {
-
         console.log("Donations Error:", error);
     }
 }
 
-
-
-
-// =========================
-async function requestDonation(id, btn) {
-
+/* =========================
+   UPDATE DONATION STATUS
+========================= */
+async function updateDonationStatus(id, status, btn) {
     try {
-
         const response = await fetch(
             `${BASE_URL}/dashboard/request/${id}`,
             {
@@ -266,40 +245,37 @@ async function requestDonation(id, btn) {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    status: "accepted"
+                    status
                 })
             }
         );
 
         const data = await response.json();
-
-        console.log("ACCEPT DONATION:", data);
+        console.log("ACCEPT/REJECT DONATION:", data);
 
         if (response.ok) {
-
-            btn.innerText = "تم القبول";
-            btn.disabled = true;
-            btn.style.backgroundColor = "#198754";
-            btn.style.color = "#fff";
-
-            setTimeout(() => {
-                btn.closest("li").remove();
-            }, 2000);
-
+            const container = btn.closest(".actions-container");
+            if (container) {
+                if (status === "accepted") {
+                    container.innerHTML = `<span class="badge bg-success">✓ تم القبول</span>`;
+                } else {
+                    container.innerHTML = `<span class="badge bg-danger">✕ تم الرفض</span>`;
+                }
+            }
+            // Refresh stats to reflect changes in totals
+            getStats();
         } else {
-
-            alert(data.message || "فشل قبول التبرع");
+            alert(data.message || "فشل تحديث حالة التبرع");
         }
 
     } catch (error) {
-
-        console.log(error);
+        console.log("Update Donation Error:", error);
     }
 }
+
 /* =========================
    GET REQUESTS
 ========================= */
-
 async function fetchRequests() {
 
     try {
@@ -308,7 +284,6 @@ async function fetchRequests() {
             `${BASE_URL}/dashboard/requests`,
             {
                 method: "GET",
-
                 headers: {
                     Authorization: token
                 }
@@ -316,101 +291,81 @@ async function fetchRequests() {
         );
 
         const data = await response.json();
-
         console.log("REQUESTS:", data);
 
-        const requests =
-            data.requests ||
-            data.data ||
-            [];
-
-        const list =
-            document.getElementById("beneficiary-list");
+        const requests = data.requests || data.data || [];
+        const list = document.getElementById("beneficiary-list");
 
         if (!requests.length) {
-
             list.innerHTML = `
                 <li class="list-group-item text-center">
                     لا توجد طلبات حالياً
                 </li>
             `;
-
             return;
         }
 
-        list.innerHTML = requests.map(item => `
+        list.innerHTML = requests.map(item => {
+            let actionsHtml = "";
+            const status = (item.status || "pending").toLowerCase();
 
-            <li class="list-group-item border-0 p-0 mt-3">
-
-                <div
-                    class="request-box"
-                    style="
-                        padding:15px;
-                        border:1px solid #ddd;
-                        border-radius:8px;
-                        display:flex;
-                        justify-content:space-between;
-                        align-items:center;
-                    "
-                >
-
-                    <div class="text-box">
-
-                        <span class="text fw-bold">
-
-                            ${item.title ||
-                              item.requestTitle ||
-                              item.userName ||
-                              "طلب جديد"}
-
-                        </span>
-
+            if (status === "accepted" || status === "approved") {
+                actionsHtml = `<span class="badge bg-success">✓ تم القبول</span>`;
+            } else if (status === "rejected" || status === "refused") {
+                actionsHtml = `<span class="badge bg-danger">✕ تم الرفض</span>`;
+            } else {
+                actionsHtml = `
+                    <div class="d-flex gap-2">
+                        <button
+                            class="btn btn-sm btn-success text-white px-3"
+                            onclick="updateRequestStatus('${item._id}', 'accepted', this)"
+                        >
+                           قبول
+                        </button>
+                        <button
+                            class="btn btn-sm btn-danger text-white px-3"
+                            onclick="updateRequestStatus('${item._id}', 'rejected', this)"
+                        >
+                           رفض
+                        </button>
                     </div>
+                `;
+            }
 
-                    <button
-                        class="fw-bold"
-                        style="
-                            background-color: #1b4b5a;
-                            color: white;
-                            border: none;
-                            padding: 7px 15px;
-                            border-radius: 5px;
-                        "
-                        onclick="assignVolunteer(this)"
-                    >
-                        تعيين متطوع
-                    </button>
-
-                </div>
-
-            </li>
-
-        `).join("");
+            return `
+                <li class="list-group-item border-0 p-0 mt-3">
+                    <div class="request-box">
+                        <div class="text-box">
+                            <span class="text fw-bold">
+                                ${item.title || item.requestTitle || item.userName || "طلب جديد"}
+                            </span>
+                        </div>
+                        <div class="actions-container">
+                            ${actionsHtml}
+                        </div>
+                    </div>
+                </li>
+            `;
+        }).join("");
 
     } catch (error) {
-
         console.log("Requests Error:", error);
     }
 }
 
 /* =========================
-   CHANGE REQUEST STATUS
+   UPDATE REQUEST STATUS
 ========================= */
-
-async function changeRequestStatus(id, status, btn) {
-
+async function updateRequestStatus(id, status, btn) {
     try {
-
         const response = await fetch(
             `${BASE_URL}/dashboard/request/${id}`,
             {
                 method: "PATCH",
-
                 headers: {
                     Authorization: token,
                     "Content-Type": "application/json"
                 },
-
                 body: JSON.stringify({
                     status
                 })
@@ -418,48 +373,26 @@ async function changeRequestStatus(id, status, btn) {
         );
 
         const data = await response.json();
-
-        console.log(data);
+        console.log("ACCEPT/REJECT REQUEST:", data);
 
         if (response.ok) {
-
-            if (status === "accepted") {
-
-                btn.innerText = "تم القبول";
-
-                btn.disabled = true;
-
-                btn.style.backgroundColor = "#198754";
-
-                btn.style.color = "#fff";
-
-            } else {
-
-                btn.closest("li").remove();
+            const container = btn.closest(".actions-container");
+            if (container) {
+                if (status === "accepted") {
+                    container.innerHTML = `<span class="badge bg-success">✓ تم القبول</span>`;
+                } else {
+                    container.innerHTML = `<span class="badge bg-danger">✕ تم الرفض</span>`;
+                }
             }
-
+            // Refresh stats to reflect changes in totals
+            getStats();
         } else {
-
-            alert(data.message || "فشل تحديث الطلب");
+            alert(data.message || "فشل تحديث حالة الطلب");
         }
 
     } catch (error) {
-
-        console.log("Status Error:", error);
+        console.log("Update Request Error:", error);
     }
-}
-
-/* =========================
-   ASSIGN VOLUNTEER
-========================= */
-
-function assignVolunteer(btn) {
-
-    btn.innerText = "تم تعيين متطوع";
-
-    btn.disabled = true;
-
-    btn.style.backgroundColor = "#198754";
 }
 
 /* =========================
