@@ -355,16 +355,20 @@ window.showDonationDetails = function(id) {
         } catch (e) {}
     }
 
-    // Status translation
-    let statusBadge = "";
-    const status = (item.status || "pending").toLowerCase();
-    if (status === "accepted" || status === "approved") {
-        statusBadge = `<span class="badge bg-success fs-6" style="padding:6px 14px;">✓ تم القبول</span>`;
-    } else if (status === "rejected" || status === "refused") {
-        statusBadge = `<span class="badge bg-danger fs-6" style="padding:6px 14px;">✕ تم الرفض</span>`;
-    } else {
-        statusBadge = `<span class="badge bg-warning text-dark fs-6" style="padding:6px 14px;">⏳ قيد الانتظار</span>`;
+    // Status translation helpers
+    function getStatusBadge(s) {
+        const lowerS = (s || "").toLowerCase();
+        if (lowerS === "accepted" || lowerS === "approved") {
+            return `<span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fs-6"><i class="fa-solid fa-circle-check me-1"></i> تم قبول التبرع</span>`;
+        } else if (lowerS === "rejected" || lowerS === "refused") {
+            return `<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 rounded-pill fs-6"><i class="fa-solid fa-circle-xmark me-1"></i> تم رفض التبرع</span>`;
+        } else {
+            return `<span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2 rounded-pill fs-6 text-dark"><i class="fa-solid fa-circle-minus me-1"></i> قيد المراجعة والانتظار</span>`;
+        }
     }
+    
+    const status = (item.status || "pending").toLowerCase();
+    const statusHtml = getStatusBadge(status);
 
     // Donor info
     const donor = item.donorId || {};
@@ -374,45 +378,194 @@ window.showDonationDetails = function(id) {
     const donorAddress = donor.address || "غير متوفر";
 
     modalBody.innerHTML = `
-        <div class="row g-4" style="direction: rtl; text-align: right;">
-            ${imageSrc ? `
-            <div class="col-md-5 text-center">
-                <div class="shadow-sm rounded-3 overflow-hidden border" style="height: 320px; background: #f9fafb;">
-                    <img src="${imageSrc}" alt="صورة التبرع" style="width: 100%; height: 100%; object-fit: cover;">
+        <div class="row g-4" style="direction: rtl; text-align: right; font-family: 'Tajawal', sans-serif;">
+            <!-- Left Side: Image Visual -->
+            <div class="col-md-5">
+                <div style="position: sticky; top: 10px;">
+                    ${imageSrc ? `
+                        <div class="shadow-sm rounded-4 overflow-hidden border" style="height: 350px; background: #f8fafc; border: 1px solid #e2e8f0; position: relative;">
+                            <img src="${imageSrc}" alt="صورة التبرع" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
+                            <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.6)); padding: 15px; color: white; font-size: 12px; text-align: center;">
+                                <i class="fa-solid fa-expand me-1"></i> صورة التبرع المقدمة من المتبرع
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="shadow-sm rounded-4 border d-flex flex-column align-items-center justify-content-center" style="height: 350px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px dashed #cbd5e1; color: #64748b; padding: 20px;">
+                            <div style="width: 80px; height: 80px; background: rgba(27, 75, 90, 0.08); color: #1b4b5a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 36px;">
+                                <i class="fa-solid fa-shirt"></i>
+                            </div>
+                            <h6 class="fw-bold mb-1" style="color: #1b4b5a;">لا توجد صورة مرفقة</h6>
+                            <p class="text-muted text-center" style="font-size: 12px; max-width: 200px; margin: 0;">لم يقم المتبرع بإضافة صورة فوتوغرافية لهذا التبرع.</p>
+                        </div>
+                    `}
                 </div>
             </div>
-            ` : ''}
-            <div class="${imageSrc ? 'col-md-7' : 'col-md-12'}">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="badge bg-teal-light text-teal fw-bold fs-6 px-3 py-2" style="background: rgba(27,75,90,0.1); color: #1b4b5a;">${item.type || "تبرع ملابس"}</span>
-                    ${statusBadge}
-                </div>
-                
-                <h5 class="fw-bold mb-3 pb-2 text-teal" style="border-bottom: 2px solid #f3f4f6; color:#1b4b5a;"><i class="fa-solid fa-user me-1"></i> بيانات المتبرع</h5>
-                <div class="row g-2 mb-4" style="font-size: 14px; color:#4b5563;">
-                    <div class="col-6"><strong>الاسم:</strong> ${donorName}</div>
-                    <div class="col-6"><strong>الهاتف:</strong> ${donorPhone}</div>
-                    <div class="col-6"><strong>البريد:</strong> ${donorEmail}</div>
-                    <div class="col-6"><strong>العنوان:</strong> ${donorAddress}</div>
+
+            <!-- Right Side: Details Sheet -->
+            <div class="col-md-7 d-flex flex-column justify-content-between">
+                <div>
+                    <!-- Status and Type Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                        <span class="fs-5 fw-extrabold text-teal" style="color: #1b4b5a; font-weight: 800;">
+                            <i class="fa-solid fa-tag me-1" style="color: var(--gold-500);"></i> ${item.type || "تبرع ملابس"}
+                        </span>
+                        <div id="modalStatusBadgeContainer">${statusHtml}</div>
+                    </div>
+
+                    <!-- Donor Details Card -->
+                    <div class="p-3 mb-4 rounded-4" style="background: linear-gradient(to bottom, #fbfcfd 0%, #f3f6f9 100%); border: 1px solid #e2e8f0;">
+                        <h6 class="fw-bold mb-3 text-teal d-flex align-items-center" style="color: #1b4b5a; font-size: 15px;">
+                            <i class="fa-solid fa-id-card me-2" style="background: rgba(27,75,90,0.1); padding: 6px; border-radius: 8px;"></i>
+                            بيانات المتبرع الكريم
+                        </h6>
+                        <div class="row g-3" style="font-size: 13.5px; color: #334155;">
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-user text-muted" style="width: 16px;"></i>
+                                    <span><strong>الاسم:</strong> ${donorName}</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-phone text-muted" style="width: 16px;"></i>
+                                    <span><strong>الهاتف:</strong> <span style="direction: ltr; display: inline-block;">${donorPhone}</span></span>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-envelope text-muted" style="width: 16px;"></i>
+                                    <span style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>البريد:</strong> ${donorEmail}</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-location-dot text-muted" style="width: 16px;"></i>
+                                    <span><strong>العنوان:</strong> ${donorAddress}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Specs Grid -->
+                    <h6 class="fw-bold mb-3 text-teal d-flex align-items-center" style="color: #1b4b5a; font-size: 15px;">
+                        <i class="fa-solid fa-circle-info me-2" style="background: rgba(27,75,90,0.1); padding: 6px; border-radius: 8px;"></i>
+                        مواصفات التبرع الفنية
+                    </h6>
+                    <div class="row g-2 mb-4">
+                        <div class="col-4">
+                            <div class="p-3 text-center rounded-3 border" style="background: #f8fafc; border-radius: 12px;">
+                                <div class="text-muted mb-1" style="font-size: 11px;">📏 المقاس</div>
+                                <div class="fw-bold text-dark" style="font-size: 14px;">${item.size || "-"}</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 text-center rounded-3 border" style="background: #f8fafc; border-radius: 12px;">
+                                <div class="text-muted mb-1" style="font-size: 11px;">📦 الكمية</div>
+                                <div class="fw-bold text-dark" style="font-size: 14px;">${item.quantity || 0} قطع</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 text-center rounded-3 border" style="background: #f8fafc; border-radius: 12px;">
+                                <div class="text-muted mb-1" style="font-size: 11px;">✨ الحالة</div>
+                                <div class="fw-bold text-dark" style="font-size: 14px;">${item.condition || "-"}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date -->
+                    <div class="mb-3" style="font-size: 12.5px; color: #64748b;">
+                        <i class="fa-solid fa-calendar-day me-1"></i> <strong>تاريخ التقديم:</strong> ${dateStr}
+                    </div>
+
+                    ${item.description ? `
+                        <div class="p-3 mb-4 rounded-3 border-start border-4" style="background: #f1f5f9; border-left: 4px solid #1b4b5a !important; border-radius: 8px; font-size: 13.5px; line-height: 1.6; color: #475569;">
+                            <strong><i class="fa-solid fa-quote-right me-1"></i> الوصف والتعليق:</strong>
+                            <p class="mb-0 mt-1" style="font-style: italic;">${item.description}</p>
+                        </div>
+                    ` : ''}
                 </div>
 
-                <h5 class="fw-bold mb-3 pb-2 text-teal" style="border-bottom: 2px solid #f3f4f6; color:#1b4b5a;"><i class="fa-solid fa-box me-1"></i> تفاصيل التبرع</h5>
-                <div class="row g-2 mb-4" style="font-size: 14px; color:#4b5563;">
-                    <div class="col-4"><strong>المقاس:</strong> ${item.size || "-"}</div>
-                    <div class="col-4"><strong>الكمية:</strong> ${item.quantity || 0}</div>
-                    <div class="col-4"><strong>الحالة:</strong> ${item.condition || "-"}</div>
-                    <div class="col-12 mt-2"><strong>تاريخ التبرع:</strong> ${dateStr}</div>
+                <!-- Footer Action Buttons (CRM Style inside Modal) -->
+                <div id="modalActionsContainer" class="d-flex justify-content-end gap-2 pt-3 border-top" style="border-top: 1px solid #f3f4f6 !important;">
+                    ${status === "pending" ? `
+                        <button class="btn btn-success text-white px-4 py-2" style="border-radius: 10px; font-size: 14px; font-weight: 700; transition: transform 0.2s;" onclick="handleModalAction('${item._id}', 'accepted')">
+                            <i class="fa-solid fa-check me-1"></i> قبول التبرع
+                        </button>
+                        <button class="btn btn-danger text-white px-4 py-2" style="border-radius: 10px; font-size: 14px; font-weight: 700; transition: transform 0.2s;" onclick="handleModalAction('${item._id}', 'rejected')">
+                            <i class="fa-solid fa-xmark me-1"></i> رفض التبرع
+                        </button>
+                    ` : `
+                        <button class="btn btn-secondary text-white px-4 py-2" style="border-radius: 10px; font-size: 14px; font-weight: 700;" data-bs-dismiss="modal">
+                            إغلاق النافذة
+                        </button>
+                    `}
                 </div>
-
-                ${item.description ? `
-                <h5 class="fw-bold mb-2 text-teal" style="color:#1b4b5a;"><i class="fa-solid fa-comment-dots me-1"></i> وصف التبرع</h5>
-                <div class="p-3 bg-light rounded-3" style="font-size: 13.5px; line-height: 1.6; color: #4b5563; max-height: 120px; overflow-y: auto;">
-                    ${item.description}
-                </div>
-                ` : ''}
             </div>
         </div>
     `;
+
+    // Inner script actions for updating inside modal
+    window.handleModalAction = async function(donationId, actionStatus) {
+        const actionButton = event.target;
+        actionButton.disabled = true;
+        actionButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> جاري التحديث...`;
+        
+        try {
+            const response = await fetch(
+                `${BASE_URL}/dashboard/request/${donationId}`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        Authorization: token,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        status: actionStatus
+                    })
+                }
+            );
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Update Badge inside Modal
+                const badgeContainer = document.getElementById("modalStatusBadgeContainer");
+                if (badgeContainer) {
+                    badgeContainer.innerHTML = getStatusBadge(actionStatus);
+                }
+
+                // Update Action Buttons inside Modal to close
+                const actionsContainer = document.getElementById("modalActionsContainer");
+                if (actionsContainer) {
+                    actionsContainer.innerHTML = `
+                        <button class="btn btn-secondary text-white px-4 py-2" style="border-radius: 10px; font-size: 14px; font-weight: 700;" data-bs-dismiss="modal">
+                            إغلاق النافذة
+                        </button>
+                    `;
+                }
+
+                // Update status in local variable list
+                const localItem = allDonations.find(d => d._id === donationId);
+                if (localItem) {
+                    localItem.status = actionStatus;
+                }
+                
+                // Re-render dashboard page list in background
+                renderDonationsPage();
+                
+                // Refresh dashboard stats counts
+                getStats();
+            } else {
+                alert(data.message || "فشل تحديث حالة التبرع");
+                actionButton.disabled = false;
+                actionButton.innerHTML = actionStatus === 'accepted' ? `<i class="fa-solid fa-check me-1"></i> قبول التبرع` : `<i class="fa-solid fa-xmark me-1"></i> رفض التبرع`;
+            }
+        } catch (err) {
+            console.error(err);
+            actionButton.disabled = false;
+            actionButton.innerHTML = actionStatus === 'accepted' ? `<i class="fa-solid fa-check me-1"></i> قبول التبرع` : `<i class="fa-solid fa-xmark me-1"></i> رفض التبرع`;
+        }
+    };
 
     const modalEl = document.getElementById("donationDetailsModal");
     if (modalEl) {
