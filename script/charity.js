@@ -383,10 +383,10 @@ window.showDonationDetails = function(id) {
             <div class="col-md-5">
                 <div style="position: sticky; top: 10px;">
                     ${imageSrc ? `
-                        <div class="shadow-sm rounded-4 overflow-hidden border" style="height: 350px; background: #f8fafc; border: 1px solid #e2e8f0; position: relative;">
-                            <img src="${imageSrc}" alt="صورة التبرع" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
-                            <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.6)); padding: 15px; color: white; font-size: 12px; text-align: center;">
-                                <i class="fa-solid fa-expand me-1"></i> صورة التبرع المقدمة من المتبرع
+                        <div class="shadow-sm rounded-4 overflow-hidden border" style="height: 350px; background: #f8fafc; border: 1px solid #e2e8f0; position: relative; cursor: zoom-in;" onclick="openLightbox('${imageSrc}')">
+                            <img src="${imageSrc}" alt="صورة التبرع" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                            <div style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.6)); padding: 15px; color: white; font-size: 12px; text-align: center; pointer-events: none;">
+                                <i class="fa-solid fa-magnifying-glass-plus me-1"></i> اضغط لتكبير الصورة
                             </div>
                         </div>
                     ` : `
@@ -572,6 +572,70 @@ window.showDonationDetails = function(id) {
         const modalInstance = new bootstrap.Modal(modalEl);
         modalInstance.show();
     }
+};
+
+// Lightbox viewer helper for zooming images to full screen
+window.openLightbox = function(src) {
+    if (!src) return;
+    
+    // Create lightbox container
+    const lightbox = document.createElement("div");
+    lightbox.id = "image-lightbox-overlay";
+    lightbox.style.position = "fixed";
+    lightbox.style.top = "0";
+    lightbox.style.left = "0";
+    lightbox.style.width = "100vw";
+    lightbox.style.height = "100vh";
+    lightbox.style.backgroundColor = "rgba(0, 0, 0, 0.88)";
+    lightbox.style.backdropFilter = "blur(6px)";
+    lightbox.style.display = "flex";
+    lightbox.style.justifyContent = "center";
+    lightbox.style.alignItems = "center";
+    lightbox.style.zIndex = "100000";
+    lightbox.style.cursor = "zoom-out";
+    lightbox.style.transition = "opacity 0.35s ease";
+    lightbox.style.opacity = "0";
+    
+    // Close button inside lightbox
+    const closeBtn = document.createElement("button");
+    closeBtn.innerHTML = "&times;";
+    closeBtn.style.position = "absolute";
+    closeBtn.style.top = "20px";
+    closeBtn.style.right = "20px";
+    closeBtn.style.background = "transparent";
+    closeBtn.style.border = "none";
+    closeBtn.style.color = "white";
+    closeBtn.style.fontSize = "45px";
+    closeBtn.style.cursor = "pointer";
+    closeBtn.style.zIndex = "100001";
+    lightbox.appendChild(closeBtn);
+    
+    const img = document.createElement("img");
+    img.src = src;
+    img.style.maxWidth = "85vw";
+    img.style.maxHeight = "85vh";
+    img.style.borderRadius = "12px";
+    img.style.boxShadow = "0 25px 50px -12px rgba(0, 0, 0, 0.5)";
+    img.style.transform = "scale(0.92)";
+    img.style.transition = "transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)";
+    
+    lightbox.appendChild(img);
+    document.body.appendChild(lightbox);
+    
+    // Animate in
+    setTimeout(() => {
+        lightbox.style.opacity = "1";
+        img.style.transform = "scale(1)";
+    }, 10);
+    
+    // Close on click
+    lightbox.onclick = function() {
+        lightbox.style.opacity = "0";
+        img.style.transform = "scale(0.92)";
+        setTimeout(() => {
+            lightbox.remove();
+        }, 350);
+    };
 };
 
 /* =========================
