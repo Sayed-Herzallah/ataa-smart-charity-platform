@@ -67,39 +67,6 @@
 
 
 // ===================2222222222222222222222222=============================
-// ==========================================
-// REDIRECT LOGGED IN USERS TO DASHBOARDS
-// ==========================================
-(function checkDashboardRedirection() {
-    const token = localStorage.getItem("token");
-    const userStr = localStorage.getItem("user");
-    if (token && userStr) {
-        try {
-            const user = JSON.parse(userStr);
-            const path = window.location.pathname.toLowerCase();
-            const isDashboard = path.includes("dashboard") || path.includes("settings.html") || path.includes("email.html");
-            
-            if (!isDashboard) {
-                let dashboardLink = "index.html";
-                switch (user.roleType?.toLowerCase()) {
-                    case "user":
-                        dashboardLink = "donor-dashboard.html";
-                        break;
-                    case "charity":
-                        dashboardLink = "charity-dashboard.html";
-                        break;
-                    case "admin":
-                        dashboardLink = "admin-dashboard.html";
-                        break;
-                }
-                window.location.href = dashboardLink;
-            }
-        } catch (e) {
-            console.error("Dashboard redirection failed:", e);
-        }
-    }
-})();
-
 // ===============================
 // Navbar scroll
 // ===============================
@@ -120,21 +87,6 @@ window.addEventListener("scroll", () => {
 document.addEventListener(
   "DOMContentLoaded",
   () => {
-    // Hide main website navbar links, mobile menu and footer on dashboard pages
-    const currentPath = window.location.pathname.toLowerCase();
-    if (currentPath.includes("dashboard")) {
-        const navLinks = document.querySelector(".nav-links");
-        if (navLinks) navLinks.style.display = "none";
-        
-        const mobileNav = document.getElementById("mobileNav");
-        if (mobileNav) mobileNav.style.display = "none";
-        
-        const hamBtn = document.getElementById("hamBtn");
-        if (hamBtn) hamBtn.style.display = "none";
-        
-        const footer = document.querySelector(".footer");
-        if (footer) footer.style.display = "none";
-    }
 
     // ===============================
     // Hamburger menu
