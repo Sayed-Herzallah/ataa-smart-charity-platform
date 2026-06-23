@@ -332,13 +332,25 @@ async function fetchRequests() {
                 `;
             }
 
+            const type = item.type || item.title || item.requestTitle || "طلب تبرع بالملابس";
+            const userText = item.userName || (item.user && item.user.userName) || "";
+            const titleText = userText ? `${type} - ${userText}` : type;
+            const detailsHtml = (item.size || item.quantity) ? `
+                <br>
+                <small class="text-muted">
+                    المقاس: ${item.size || "-"} |
+                    الكمية: ${item.quantity || 0}
+                </small>
+            ` : "";
+
             return `
                 <li class="list-group-item border-0 p-0 mt-3">
                     <div class="request-box">
                         <div class="text-box">
                             <span class="text fw-bold">
-                                ${item.title || item.requestTitle || item.userName || "طلب جديد"}
+                                ${titleText}
                             </span>
+                            ${detailsHtml}
                         </div>
                         <div class="actions-container">
                             ${actionsHtml}
