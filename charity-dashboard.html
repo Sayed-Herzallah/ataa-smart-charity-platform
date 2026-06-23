@@ -23,7 +23,6 @@
 <body>
 
   
-<div class="my-dashboard">
   <!-- ══════ NAVBAR ══════ -->
 <nav class="navbar" id="navbar">
     <div class="nav-inner">
@@ -124,12 +123,12 @@
 
 </div>
 
-
-
-
+<div class="my-dashboard">
   <div class="container mt-4">
     <h4 class="fw-bold px-2 mb-4">لوحة تحكم الجمعية</h4>
- <div class="row g-4 mb-4">
+    
+    <!-- Stats Cards Grid -->
+    <div class="row g-4 mb-4">
       <div class="col-md-4">
         <div class="stat-card stat-total">
           <div class="stat-icon"><i class="fa-solid fa-box-open"></i></div>
@@ -144,7 +143,7 @@
           <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
           <div class="stat-info">
             <p>تبرعات معلقة</p>
-            <h4 id="beneficiary-requests">0</h4>
+            <h4 id="pending-donations">0</h4>
           </div>
         </div>
       </div>
@@ -153,68 +152,58 @@
           <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
           <div class="stat-info">
             <p>تبرعات مقبولة</p>
-            <h4 id="active-volunteers">0</h4>
+            <h4 id="accepted-donations">0</h4>
           </div>
         </div>
       </div>
-      <div class="row mb-4">
-    <div class="col-12">
-
-        <div class="card shadow-sm p-3">
-
-            <div class="d-flex justify-content-between align-items-center mb-3">
-
-                <h5 class="fw-bold mb-0">
-                    <i class="fa-solid fa-bell text-warning"></i>
-                    الإشعارات
-                </h5>
-
-                <span id="notifications-count"
-                    class="badge bg-danger">
-                    0
-                </span>
-
-            </div>
-
-            <ul class="list-group list-group-flush"
-                id="notifications-list">
-
-                <li class="list-group-item text-center text-muted">
-                    جاري تحميل الإشعارات...
-                </li>
-
-            </ul>
-
-        </div>
-
     </div>
-</div>
-    </div> 
 
+    <!-- Notifications Row -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card shadow-sm p-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">
+              <i class="fa-solid fa-bell text-warning"></i>
+              الإشعارات
+            </h5>
+            <span id="notifications-count" class="badge bg-danger">0</span>
+          </div>
+          <ul class="list-group list-group-flush" id="notifications-list">
+            <li class="list-group-item text-center text-muted">
+              جاري تحميل الإشعارات...
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Donations Full Width Grid Card -->
     <div class="row g-4">
-      <div class="col-md-6">
-        <div class="card shadow-sm p-3">
-          <div class="d-flex justify-content-between mb-2">
+      <div class="col-12">
+        <div class="card shadow-sm p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="fw-bold">التبرعات الجديدة</h5>
-            <a href="#" id="show-all-donations" class="small text-warning fw-bold">عرض الكل</a>
           </div>
-          <ul class="list-group list-group-flush" id="donations-list">
-            </ul>
+          
+          <!-- Grid container -->
+          <div id="donations-grid" class="donations-grid">
+            <!-- Dynamically populated -->
+          </div>
+
+          <!-- Pagination container -->
+          <div class="pagination-container d-flex justify-content-center align-items-center gap-3">
+            <button id="prevPageBtn" class="btn btn-outline-teal" onclick="changePage(-1)">السابق</button>
+            <span id="pageIndicator" class="fw-bold">الصفحة 1</span>
+            <button id="nextPageBtn" class="btn btn-outline-teal" onclick="changePage(1)">التالي</button>
+          </div>
         </div>
       </div>
-
-      <div class="col-md-6"> 
-        <div class="card shadow-sm p-3">
-          <div class="d-flex justify-content-between mb-2">
-            <h5 class="fw-bold">طلبات المستفيدين</h5>
-            <a href="#" id="show-all-requests" class="small text-warning fw-bold">عرض الكل</a>
-          </div>
-          <ul class="list-group list-group-flush" id="beneficiary-list">
-            </ul>
-        </div>
     </div>
-  </div>
-</div>
+
+  </div> <!-- End container -->
+</div> <!-- End my-dashboard -->
+
 
 
 

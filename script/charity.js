@@ -92,18 +92,16 @@ const BASE_URL = "https://ataa-charity-platform.vercel.app";
 
 const token = localStorage.getItem("token");
 
+let currentPage = 1;
+const limit = 6;
+
 /* =========================
    START
 ========================= */
 
 document.addEventListener("DOMContentLoaded", () => {
-
     getStats();
-
     fetchDonations();
-
-    fetchRequests();
-
     loadNotifications();
 });
 
@@ -112,14 +110,11 @@ document.addEventListener("DOMContentLoaded", () => {
 ========================= */
 
 async function getStats() {
-
     try {
-
         const response = await fetch(
             `${BASE_URL}/dashboard/stats`,
             {
                 method: "GET",
-
                 headers: {
                     Authorization: token
                 }
@@ -127,7 +122,6 @@ async function getStats() {
         );
 
         const data = await response.json();
-
         console.log("STATS:", data);
 
         const stats = data.stats || data;
@@ -135,14 +129,13 @@ async function getStats() {
         document.getElementById("total-donations").textContent =
             stats.Total_Donations !== undefined ? stats.Total_Donations : (stats.totalDonations || stats.donations || 0);
 
-        document.getElementById("beneficiary-requests").textContent =
+        document.getElementById("pending-donations").textContent =
             stats.Pending_Donations !== undefined ? stats.Pending_Donations : (stats.totalRequests || stats.requests || 0);
 
-        document.getElementById("active-volunteers").textContent =
+        document.getElementById("accepted-donations").textContent =
             stats.Accepted_Donations !== undefined ? stats.Accepted_Donations : (stats.activeVolunteers || stats.volunteers || 0);
 
     } catch (error) {
-
         console.log("Stats Error:", error);
     }
 }
@@ -151,11 +144,9 @@ async function getStats() {
    GET DONATIONS
 ========================= */
 async function fetchDonations() {
-
     try {
-
         const response = await fetch(
-            `${BASE_URL}/dashboard/donations`,
+            `${BASE_URL}/dashboard/donations?page=${currentPage}&limit=${limit}`,
             {
                 method: "GET",
                 headers: {
@@ -168,18 +159,21 @@ async function fetchDonations() {
         console.log("DONATIONS:", data);
 
         const donations = data.donations || data.data || [];
-        const list = document.getElementById("donations-list");
+        const grid = document.getElementById("donations-grid");
 
         if (!donations.length) {
-            list.innerHTML = `
-                <li class="list-group-item text-center">
+            grid.innerHTML = `
+                <div class="text-center w-100 p-4 text-muted">
                     لا توجد تبرعات حالياً
-                </li>
+                </div>
             `;
+            document.getElementById("prevPageBtn").disabled = currentPage === 1;
+            document.getElementById("nextPageBtn").disabled = true;
+            document.getElementById("pageIndicator").textContent = `الصفحة ${currentPage}`;
             return;
         }
 
-        list.innerHTML = donations.map(item => {
+        grid.innerHTML = donations.map(item => {
             let actionsHtml = "";
             const status = (item.status || "pending").toLowerCase();
 
@@ -207,29 +201,45 @@ async function fetchDonations() {
             }
 
             return `
-                <li class="list-group-item border-0 p-0 mb-2 mt-3">
-                    <div class="request-box">
-                        <div class="text-box">
-                            <span class="text fw-bold">
-                                ${item.type || "تبرع جديد"}
-                            </span>
-                            <small class="text-muted">
-                                المقاس: ${item.size || "-"} |
-                                الكمية: ${item.quantity || 0}
-                            </small>
-                        </div>
-                        <div class="actions-container">
-                            ${actionsHtml}
+                <div class="donation-card">
+                    <div class="donation-card-header">
+                        <span class="type-badge">${item.type || "تبرع جديد"}</span>
+                    </div>
+                    <div class="donation-card-body">
+                        <p class="fw-bold text-teal">تفاصيل التبرع:</p>
+                        <div class="details-text">
+                            <span>المقاس: ${item.size || "-"}</span>
+                            <span>الكمية: ${item.quantity || 0}</span>
                         </div>
                     </div>
-                </li>
+                    <div class="donation-card-footer actions-container">
+                        ${actionsHtml}
+                    </div>
+                </div>
             `;
         }).join("");
+
+        // Update pagination buttons
+        document.getElementById("prevPageBtn").disabled = currentPage === 1;
+        document.getElementById("nextPageBtn").disabled = donations.length < limit;
+        document.getElementById("pageIndicator").textContent = `الصفحة ${currentPage}`;
 
     } catch (error) {
         console.log("Donations Error:", error);
     }
 }
+
+/* =========================
+   PAGINATION
+========================= */
+window.changePage = function(direction) {
+    currentPage += direction;
+    fetchDonations();
+    const gridEl = document.getElementById("donations-grid");
+    if (gridEl) {
+        window.scrollTo({ top: gridEl.offsetTop - 120, behavior: 'smooth' });
+    }
+};
 
 /* =========================
    UPDATE DONATION STATUS
@@ -270,140 +280,6 @@ async function updateDonationStatus(id, status, btn) {
 
     } catch (error) {
         console.log("Update Donation Error:", error);
-    }
-}
-
-/* =========================
-   GET REQUESTS
-========================= */
-async function fetchRequests() {
-
-    try {
-
-        const response = await fetch(
-            `${BASE_URL}/dashboard/requests`,
-            {
-                method: "GET",
-                headers: {
-                    Authorization: token
-                }
-            }
-        );
-
-        const data = await response.json();
-        console.log("REQUESTS:", data);
-
-        const requests = data.requests || data.data || [];
-        const list = document.getElementById("beneficiary-list");
-
-        if (!requests.length) {
-            list.innerHTML = `
-                <li class="list-group-item text-center">
-                    لا توجد طلبات حالياً
-                </li>
-            `;
-            return;
-        }
-
-        list.innerHTML = requests.map(item => {
-            let actionsHtml = "";
-            const status = (item.status || "pending").toLowerCase();
-
-            if (status === "accepted" || status === "approved") {
-                actionsHtml = `<span class="badge bg-success">✓ تم القبول</span>`;
-            } else if (status === "rejected" || status === "refused") {
-                actionsHtml = `<span class="badge bg-danger">✕ تم الرفض</span>`;
-            } else {
-                actionsHtml = `
-                    <div class="d-flex gap-2">
-                        <button
-                            class="btn btn-sm btn-success text-white px-3"
-                            onclick="updateRequestStatus('${item._id}', 'accepted', this)"
-                        >
-                           قبول
-                        </button>
-                        <button
-                            class="btn btn-sm btn-danger text-white px-3"
-                            onclick="updateRequestStatus('${item._id}', 'rejected', this)"
-                        >
-                           رفض
-                        </button>
-                    </div>
-                `;
-            }
-
-            const type = item.type || item.title || item.requestTitle || "طلب تبرع بالملابس";
-            const userText = item.userName || (item.user && item.user.userName) || "";
-            const titleText = userText ? `${type} - ${userText}` : type;
-            const detailsHtml = (item.size || item.quantity) ? `
-                <br>
-                <small class="text-muted">
-                    المقاس: ${item.size || "-"} |
-                    الكمية: ${item.quantity || 0}
-                </small>
-            ` : "";
-
-            return `
-                <li class="list-group-item border-0 p-0 mt-3">
-                    <div class="request-box">
-                        <div class="text-box">
-                            <span class="text fw-bold">
-                                ${titleText}
-                            </span>
-                            ${detailsHtml}
-                        </div>
-                        <div class="actions-container">
-                            ${actionsHtml}
-                        </div>
-                    </div>
-                </li>
-            `;
-        }).join("");
-
-    } catch (error) {
-        console.log("Requests Error:", error);
-    }
-}
-
-/* =========================
-   UPDATE REQUEST STATUS
-========================= */
-async function updateRequestStatus(id, status, btn) {
-    try {
-        const response = await fetch(
-            `${BASE_URL}/dashboard/request/${id}`,
-            {
-                method: "PATCH",
-                headers: {
-                    Authorization: token,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    status
-                })
-            }
-        );
-
-        const data = await response.json();
-        console.log("ACCEPT/REJECT REQUEST:", data);
-
-        if (response.ok) {
-            const container = btn.closest(".actions-container");
-            if (container) {
-                if (status === "accepted") {
-                    container.innerHTML = `<span class="badge bg-success">✓ تم القبول</span>`;
-                } else {
-                    container.innerHTML = `<span class="badge bg-danger">✕ تم الرفض</span>`;
-                }
-            }
-            // Refresh stats to reflect changes in totals
-            getStats();
-        } else {
-            alert(data.message || "فشل تحديث حالة الطلب");
-        }
-
-    } catch (error) {
-        console.log("Update Request Error:", error);
     }
 }
 
