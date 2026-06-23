@@ -858,10 +858,22 @@ document.addEventListener('DOMContentLoaded', () => {
                             confirmButtonText:
                                 'متابعة'
                         }).then(() => {
-
-                            // التحويل للهوم مباشرة
-                            window.location.href =
-                                'index.html';
+                            // التحويل للوحة التحكم مباشرة حسب الصلاحية
+                            let dashboardLink = 'index.html';
+                            if (payload) {
+                                switch (payload.roleType?.toLowerCase()) {
+                                    case 'user':
+                                        dashboardLink = 'donor-dashboard.html';
+                                        break;
+                                    case 'charity':
+                                        dashboardLink = 'charity-dashboard.html';
+                                        break;
+                                    case 'admin':
+                                        dashboardLink = 'admin-dashboard.html';
+                                        break;
+                                }
+                            }
+                            window.location.href = dashboardLink;
                         });
 
                     } else {
