@@ -387,16 +387,7 @@ if (navActions) {
     // ===============================
     // Logged User Navbar
     // ===============================
-    if (document.getElementById("notificationsDropdown")) {
-        document
-          .getElementById(
-            "logoutBtn"
-          )
-          ?.addEventListener(
-            "click",
-            logout
-          );
-    } else {
+    if (!document.getElementById("notificationsDropdown")) {
         navActions.innerHTML = `
           <span class="user-name">
             مرحباً 👋
@@ -418,15 +409,6 @@ if (navActions) {
             تسجيل خروج
           </button>
         `;
-
-        document
-          .getElementById(
-            "logoutBtn"
-          )
-          ?.addEventListener(
-            "click",
-            logout
-          );
     }
   }
 }
@@ -602,36 +584,93 @@ if (token) {
 
 // Logout
 function logout() {
+    // Clear tokens
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
 
-    localStorage.removeItem(
-        "token"
-    );
+    // Add styles for the custom spinner animation if not present
+    if (!document.getElementById("logout-animation-styles")) {
+        const styleSheet = document.createElement("style");
+        styleSheet.id = "logout-animation-styles";
+        styleSheet.innerText = `
+          @keyframes logout-rotate {
+            100% { transform: rotate(360deg); }
+          }
+          @keyframes logout-dash {
+            0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+            50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+            100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+          }
+        `;
+        document.head.appendChild(styleSheet);
+    }
 
-    localStorage.removeItem(
-        "user"
-    );
+    // Create a beautiful full-screen logout card overlay
+    const overlay = document.createElement("div");
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100vw";
+    overlay.style.height = "100vh";
+    overlay.style.backgroundColor = "rgba(27, 75, 90, 0.45)";
+    overlay.style.backdropFilter = "blur(8px)";
+    overlay.style.display = "flex";
+    overlay.style.justifyContent = "center";
+    overlay.style.alignItems = "center";
+    overlay.style.zIndex = "99999";
+    overlay.style.transition = "opacity 0.4s ease";
+    overlay.style.opacity = "0";
+    overlay.style.fontFamily = "'Tajawal', sans-serif";
 
-    window.location.href =
-        "index.html";
+    const card = document.createElement("div");
+    card.style.background = "#ffffff";
+    card.style.borderRadius = "20px";
+    card.style.padding = "30px 40px";
+    card.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.15)";
+    card.style.textAlign = "center";
+    card.style.maxWidth = "400px";
+    card.style.width = "90%";
+    card.style.transform = "scale(0.85)";
+    card.style.transition = "transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
+    card.style.direction = "rtl";
+
+    card.innerHTML = `
+        <div style="width: 70px; height: 70px; background: rgba(27, 75, 90, 0.08); color: #1b4b5a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 32px;">
+            <i class="fa-solid fa-right-from-bracket"></i>
+        </div>
+        <h4 style="font-weight: 800; color: #1b4b5a; margin-bottom: 8px;">تم تسجيل الخروج</h4>
+        <p style="color: #6b7280; font-size: 14px; margin: 0 0 20px 0;">تم تسجيل خروجك بنجاح من منصة عطاء.</p>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #1b4b5a; font-size: 13.5px; font-weight: 700;">
+            <svg viewBox="0 0 50 50" style="width: 20px; height: 20px; animation: logout-rotate 2s linear infinite;">
+              <circle cx="25" cy="25" r="20" fill="none" stroke="#1b4b5a" stroke-width="5" style="stroke-linecap: round; animation: logout-dash 1.5s ease-in-out infinite;"></circle>
+            </svg>
+            <span>جاري تحويلك للرئيسية...</span>
+        </div>
+    `;
+
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    // Trigger animations
+    setTimeout(() => {
+        overlay.style.opacity = "1";
+        card.style.transform = "scale(1)";
+    }, 10);
+
+    // Redirect after 2 seconds
+    setTimeout(() => {
+        window.location.href = "index.html";
+    }, 2000);
 }
 
-document
-    .getElementById(
-        "logoutBtn"
-    )
-    ?.addEventListener(
-        "click",
-        logout
-    );
-
-document
-    .getElementById(
-        "mobileLogoutBtn"
-    )
-    ?.addEventListener(
-        "click",
-        logout
-    );
+// Universal click listener for all logout buttons (delegation handles dynamic element overwrites)
+document.addEventListener("click", (e) => {
+    const logoutBtn = e.target.closest("#logoutBtn, #mobileLogoutBtn, .logout-btn");
+    if (logoutBtn) {
+        e.preventDefault();
+        logout();
+    }
+});
 
 // Expose functions globally to ensure HTML inline attributes can access them
 window.handleSubmit = handleSubmit;
