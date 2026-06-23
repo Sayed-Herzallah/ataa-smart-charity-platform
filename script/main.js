@@ -387,29 +387,47 @@ if (navActions) {
     // ===============================
     // Logged User Navbar
     // ===============================
-    if (!document.getElementById("notificationsDropdown")) {
-        navActions.innerHTML = `
-          <span class="user-name">
-            مرحباً 👋
-          </span>
-
-          <a class="nav-btn-settings"
-             href="settings.html"
-             title="الإعدادات">
-             ⚙️
-          </a>
-
-          <a class="nav-btn-signup"
-             href="${dashboardLink}">
-            Dashboard
-          </a>
-
-          <button class="nav-btn-login"
-                  id="logoutBtn">
-            تسجيل خروج
+    const notificationsHtml = `
+      <!-- Notification Dropdown -->
+      <div class="dropdown me-3" style="position: relative; display: inline-block;">
+          <button class="btn p-0 border-0 position-relative" type="button" id="notificationsDropdown" style="background: transparent; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border-radius: 50%; transition: background 0.3s;">
+              <i class="fa-solid fa-bell fs-5" style="color: #1b4b5a; font-size: 19px;"></i>
+              <span id="notifications-count" class="position-absolute badge rounded-pill bg-danger" style="font-size: 9px; padding: 2px 5px; position: absolute; top: 0px; right: 0px; background-color: #dc3545; color: white; border-radius: 10px; display: none;">0</span>
           </button>
-        `;
-    }
+          <ul class="dropdown-menu dropdown-menu-end shadow p-2" id="notifications-list" style="width: 300px; max-height: 350px; overflow-y: auto; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 13px; position: absolute; left: 0; top: 110%; display: none; background: white; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); z-index: 1000; list-style: none; padding: 10px; margin: 0;">
+              <li class="text-center text-muted p-3">جاري تحميل الإشعارات...</li>
+          </ul>
+      </div>
+    `;
+
+    navActions.innerHTML = `
+      ${notificationsHtml}
+
+      <span class="user-name" style="margin-left: 10px; font-weight: 700; color: #1b4b5a; font-size: 14px;">
+        مرحباً 👋 ${user.userName || ""}
+      </span>
+
+      <a class="nav-btn-settings"
+         href="settings.html"
+         title="الإعدادات"
+         style="margin-left: 8px;">
+         ⚙️
+      </a>
+
+      <a class="nav-btn-signup"
+         href="${dashboardLink}"
+         style="margin-left: 8px;">
+        لوحة التحكم
+      </a>
+
+      <button class="nav-btn-login"
+              id="logoutBtn">
+        تسجيل خروج
+      </button>
+    `;
+
+    // Load notifications
+    loadNotifications();
   }
 }
   }
@@ -582,28 +600,31 @@ if (token) {
     }
 }
 
+// Add global styles for notifications and spinner animations if not present
+if (!document.getElementById("global-notifications-styles")) {
+    const styleSheet = document.createElement("style");
+    styleSheet.id = "global-notifications-styles";
+    styleSheet.innerText = `
+      .dropdown-menu.show {
+        display: block !important;
+      }
+      @keyframes logout-rotate {
+        100% { transform: rotate(360deg); }
+      }
+      @keyframes logout-dash {
+        0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+        50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+        100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+}
+
 // Logout
 function logout() {
     // Clear tokens
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-
-    // Add styles for the custom spinner animation if not present
-    if (!document.getElementById("logout-animation-styles")) {
-        const styleSheet = document.createElement("style");
-        styleSheet.id = "logout-animation-styles";
-        styleSheet.innerText = `
-          @keyframes logout-rotate {
-            100% { transform: rotate(360deg); }
-          }
-          @keyframes logout-dash {
-            0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
-            50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
-            100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
-          }
-        `;
-        document.head.appendChild(styleSheet);
-    }
 
     // Create a beautiful full-screen logout card overlay
     const overlay = document.createElement("div");
@@ -663,15 +684,154 @@ function logout() {
     }, 2000);
 }
 
-// Universal click listener for all logout buttons (delegation handles dynamic element overwrites)
+// Global notifications functions
+async function loadNotifications() {
+    const BASE_URL = "https://ataa-charity-platform.vercel.app";
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+        const response = await fetch(
+            `${BASE_URL}/notification`,
+            {
+                headers: {
+                    Authorization: token
+                }
+            }
+        );
+
+        if (!response.ok) {
+            const countBadge = document.getElementById("notifications-count");
+            if (countBadge) countBadge.style.display = "none";
+            const notificationList = document.getElementById("notifications-list");
+            if (notificationList) {
+                notificationList.innerHTML = `<li class="text-center text-muted p-3">لا توجد إشعارات حالياً</li>`;
+            }
+            return;
+        }
+
+        const data = await response.json();
+        const notifications = data.notifications || data.data || [];
+
+        const countBadge = document.getElementById("notifications-count");
+        const notificationList = document.getElementById("notifications-list");
+
+        if (countBadge) {
+            countBadge.textContent = notifications.length;
+            countBadge.style.display = notifications.length > 0 ? "inline-block" : "none";
+        }
+
+        if (!notificationList) return;
+
+        if (!notifications.length) {
+            notificationList.innerHTML = `
+                <li class="text-center text-muted p-3">
+                    لا توجد إشعارات حالياً
+                </li>
+            `;
+            return;
+        }
+
+        notificationList.innerHTML = notifications.map(notification => `
+            <li class="dropdown-item d-flex justify-content-between align-items-center p-2 mb-1" style="white-space: normal; border-bottom: 1px solid #f3f4f6; text-align: right;">
+                <span style="flex-grow: 1; margin-left: 10px; font-size: 12.5px; color: #334155;">
+                    ${notification.message || notification.title || "إشعار جديد"}
+                </span>
+                <div class="d-flex gap-1 flex-shrink-0">
+                    <button class="btn btn-sm btn-success text-white px-2 py-0" style="font-size: 11px; border: none; border-radius: 4px; cursor: pointer; background-color: #198754; color: white;" onclick="markNotificationAsRead('${notification._id}'); event.stopPropagation();">✓</button>
+                    <button class="btn btn-sm btn-danger text-white px-2 py-0" style="font-size: 11px; border: none; border-radius: 4px; cursor: pointer; background-color: #dc3545; color: white;" onclick="deleteNotification('${notification._id}'); event.stopPropagation();">✕</button>
+                </div>
+            </li>
+        `).join("");
+
+    } catch (error) {
+        console.log("NOTIFICATIONS ERROR:", error);
+    }
+}
+
+async function markNotificationAsRead(id) {
+    const BASE_URL = "https://ataa-charity-platform.vercel.app";
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+        const response = await fetch(
+            `${BASE_URL}/notification/${id}`,
+            {
+                method: "PATCH",
+                headers: {
+                    Authorization: token,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    status: "read"
+                })
+            }
+        );
+
+        if (response.ok) {
+            loadNotifications();
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function deleteNotification(id) {
+    const BASE_URL = "https://ataa-charity-platform.vercel.app";
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+        const response = await fetch(
+            `${BASE_URL}/notification/${id}`,
+            {
+                method: "DELETE",
+                headers: {
+                    Authorization: token
+                }
+            }
+        );
+
+        if (response.ok) {
+            loadNotifications();
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+// Universal click listener (Event delegation)
 document.addEventListener("click", (e) => {
+    // 1. Logout Action
     const logoutBtn = e.target.closest("#logoutBtn, #mobileLogoutBtn, .logout-btn");
     if (logoutBtn) {
         e.preventDefault();
         logout();
+        return;
+    }
+
+    // 2. Notifications Toggle
+    const toggle = e.target.closest("#notificationsDropdown");
+    const menu = document.getElementById("notifications-list");
+    if (toggle) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (menu) {
+            const isShown = menu.classList.contains("show");
+            document.querySelectorAll(".dropdown-menu").forEach(m => m.classList.remove("show"));
+            if (!isShown) {
+                menu.classList.add("show");
+            }
+        }
+    } else if (menu && !e.target.closest(".dropdown")) {
+        menu.classList.remove("show");
     }
 });
 
 // Expose functions globally to ensure HTML inline attributes can access them
 window.handleSubmit = handleSubmit;
 window.logout = logout;
+window.loadNotifications = loadNotifications;
+window.markNotificationAsRead = markNotificationAsRead;
+window.deleteNotification = deleteNotification;
