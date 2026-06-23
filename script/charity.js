@@ -87,6 +87,8 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchDonations();
 
     fetchRequests();
+
+    loadNotifications();
 });
 
 /* =========================
@@ -112,19 +114,21 @@ async function getStats() {
 
         console.log("STATS:", data);
 
+        const stats = data.stats || data;
+
         document.getElementById("total-donations").textContent =
-            data.totalDonations ||
-            data.donations ||
+            stats.totalDonations ||
+            stats.donations ||
             0;
 
         document.getElementById("beneficiary-requests").textContent =
-            data.totalRequests ||
-            data.requests ||
+            stats.totalRequests ||
+            stats.requests ||
             0;
 
         document.getElementById("active-volunteers").textContent =
-            data.activeVolunteers ||
-            data.volunteers ||
+            stats.activeVolunteers ||
+            stats.volunteers ||
             0;
 
     } catch (error) {
@@ -446,4 +450,170 @@ function assignVolunteer(btn) {
     btn.disabled = true;
 
     btn.style.backgroundColor = "#198754";
+}
+
+/* =========================
+   LOAD NOTIFICATIONS
+========================= */
+async function loadNotifications() {
+
+    try {
+
+        const response = await fetch(
+            `${BASE_URL}/notification`,
+            {
+                headers: {
+                    Authorization: token
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        console.log("NOTIFICATIONS:", data);
+
+        const notifications =
+            data.notifications ||
+            data.data ||
+            [];
+
+        const countBadge =
+            document.getElementById("notifications-count");
+
+        const notificationList =
+            document.getElementById("notifications-list");
+
+        if (countBadge) {
+
+            countBadge.textContent =
+                notifications.length;
+        }
+
+        if (!notificationList) return;
+
+        if (!notifications.length) {
+
+            notificationList.innerHTML = `
+                <li class="list-group-item text-center text-muted">
+                    لا توجد إشعارات حالياً
+                </li>
+            `;
+
+            return;
+        }
+
+        notificationList.innerHTML =
+            notifications.map(notification => `
+
+                <li
+                    class="list-group-item d-flex justify-content-between align-items-center"
+                >
+
+                    <span>
+                        ${
+                            notification.message ||
+                            notification.title ||
+                            "إشعار جديد"
+                        }
+                    </span>
+
+                    <div class="d-flex gap-1">
+
+                        <button
+                            class="btn btn-sm btn-success text-white"
+                            style="padding: 2px 8px;"
+                            onclick="markNotificationAsRead('${notification._id}')"
+                        >
+                            ✓
+                        </button>
+
+                        <button
+                            class="btn btn-sm btn-danger text-white"
+                            style="padding: 2px 8px;"
+                            onclick="deleteNotification('${notification._id}')"
+                        >
+                            ✕
+                        </button>
+
+                    </div>
+
+                </li>
+
+            `).join("");
+
+    } catch (error) {
+
+        console.log("NOTIFICATIONS ERROR:", error);
+    }
+}
+
+/* =========================
+   MARK AS READ
+========================= */
+async function markNotificationAsRead(id) {
+
+    try {
+
+        const response = await fetch(
+            `${BASE_URL}/notification/${id}`,
+            {
+                method: "PATCH",
+
+                headers: {
+                    Authorization: token,
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    status: "read"
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        console.log("MARK READ:", data);
+
+        if (response.ok) {
+
+            loadNotifications();
+        }
+
+    } catch (error) {
+
+        console.log(error);
+    }
+}
+
+/* =========================
+   DELETE NOTIFICATION
+========================= */
+async function deleteNotification(id) {
+
+    try {
+
+        const response = await fetch(
+            `${BASE_URL}/notification/${id}`,
+            {
+                method: "DELETE",
+
+                headers: {
+                    Authorization: token
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        console.log("DELETE NOTIFICATION:", data);
+
+        if (response.ok) {
+
+            loadNotifications();
+        }
+
+    } catch (error) {
+
+        console.log(error);
+    }
 }
