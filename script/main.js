@@ -67,6 +67,39 @@
 
 
 // ===================2222222222222222222222222=============================
+// ==========================================
+// REDIRECT LOGGED IN USERS TO DASHBOARDS
+// ==========================================
+(function checkDashboardRedirection() {
+    const token = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    if (token && userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            const path = window.location.pathname.toLowerCase();
+            const isDashboard = path.includes("dashboard") || path.includes("settings.html") || path.includes("email.html");
+            
+            if (!isDashboard) {
+                let dashboardLink = "index.html";
+                switch (user.roleType?.toLowerCase()) {
+                    case "user":
+                        dashboardLink = "donor-dashboard.html";
+                        break;
+                    case "charity":
+                        dashboardLink = "charity-dashboard.html";
+                        break;
+                    case "admin":
+                        dashboardLink = "admin-dashboard.html";
+                        break;
+                }
+                window.location.href = dashboardLink;
+            }
+        } catch (e) {
+            console.error("Dashboard redirection failed:", e);
+        }
+    }
+})();
+
 // ===============================
 // Navbar scroll
 // ===============================
@@ -87,6 +120,21 @@ window.addEventListener("scroll", () => {
 document.addEventListener(
   "DOMContentLoaded",
   () => {
+    // Hide main website navbar links, mobile menu and footer on dashboard pages
+    const currentPath = window.location.pathname.toLowerCase();
+    if (currentPath.includes("dashboard")) {
+        const navLinks = document.querySelector(".nav-links");
+        if (navLinks) navLinks.style.display = "none";
+        
+        const mobileNav = document.getElementById("mobileNav");
+        if (mobileNav) mobileNav.style.display = "none";
+        
+        const hamBtn = document.getElementById("hamBtn");
+        if (hamBtn) hamBtn.style.display = "none";
+        
+        const footer = document.querySelector(".footer");
+        if (footer) footer.style.display = "none";
+    }
 
     // ===============================
     // Hamburger menu
@@ -622,66 +670,132 @@ if (!document.getElementById("global-notifications-styles")) {
 
 // Logout
 function logout() {
-    // Clear tokens
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    // Create the confirmation overlay
+    const confirmOverlay = document.createElement("div");
+    confirmOverlay.id = "logout-confirm-overlay";
+    confirmOverlay.style.position = "fixed";
+    confirmOverlay.style.top = "0";
+    confirmOverlay.style.left = "0";
+    confirmOverlay.style.width = "100vw";
+    confirmOverlay.style.height = "100vh";
+    confirmOverlay.style.backgroundColor = "rgba(27, 75, 90, 0.4)";
+    confirmOverlay.style.backdropFilter = "blur(8px)";
+    confirmOverlay.style.display = "flex";
+    confirmOverlay.style.justifyContent = "center";
+    confirmOverlay.style.alignItems = "center";
+    confirmOverlay.style.zIndex = "99999";
+    confirmOverlay.style.transition = "opacity 0.3s ease";
+    confirmOverlay.style.opacity = "0";
+    confirmOverlay.style.fontFamily = "'Tajawal', sans-serif";
 
-    // Create a beautiful full-screen logout card overlay
-    const overlay = document.createElement("div");
-    overlay.style.position = "fixed";
-    overlay.style.top = "0";
-    overlay.style.left = "0";
-    overlay.style.width = "100vw";
-    overlay.style.height = "100vh";
-    overlay.style.backgroundColor = "rgba(27, 75, 90, 0.45)";
-    overlay.style.backdropFilter = "blur(8px)";
-    overlay.style.display = "flex";
-    overlay.style.justifyContent = "center";
-    overlay.style.alignItems = "center";
-    overlay.style.zIndex = "99999";
-    overlay.style.transition = "opacity 0.4s ease";
-    overlay.style.opacity = "0";
-    overlay.style.fontFamily = "'Tajawal', sans-serif";
+    const confirmCard = document.createElement("div");
+    confirmCard.style.background = "#ffffff";
+    confirmCard.style.borderRadius = "24px";
+    confirmCard.style.padding = "35px 30px";
+    confirmCard.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.15)";
+    confirmCard.style.textAlign = "center";
+    confirmCard.style.maxWidth = "400px";
+    confirmCard.style.width = "90%";
+    confirmCard.style.transform = "scale(0.85)";
+    confirmCard.style.transition = "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)";
+    confirmCard.style.direction = "rtl";
 
-    const card = document.createElement("div");
-    card.style.background = "#ffffff";
-    card.style.borderRadius = "20px";
-    card.style.padding = "30px 40px";
-    card.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.15)";
-    card.style.textAlign = "center";
-    card.style.maxWidth = "400px";
-    card.style.width = "90%";
-    card.style.transform = "scale(0.85)";
-    card.style.transition = "transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
-    card.style.direction = "rtl";
-
-    card.innerHTML = `
-        <div style="width: 70px; height: 70px; background: rgba(27, 75, 90, 0.08); color: #1b4b5a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 32px;">
-            <i class="fa-solid fa-right-from-bracket"></i>
+    confirmCard.innerHTML = `
+        <div style="width: 70px; height: 70px; background: rgba(220, 53, 69, 0.08); color: #dc3545; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 32px;">
+            <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
-        <h4 style="font-weight: 800; color: #1b4b5a; margin-bottom: 8px;">تم تسجيل الخروج</h4>
-        <p style="color: #6b7280; font-size: 14px; margin: 0 0 20px 0;">تم تسجيل خروجك بنجاح من منصة عطاء.</p>
-        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #1b4b5a; font-size: 13.5px; font-weight: 700;">
-            <svg viewBox="0 0 50 50" style="width: 20px; height: 20px; animation: logout-rotate 2s linear infinite;">
-              <circle cx="25" cy="25" r="20" fill="none" stroke="#1b4b5a" stroke-width="5" style="stroke-linecap: round; animation: logout-dash 1.5s ease-in-out infinite;"></circle>
-            </svg>
-            <span>جاري تحويلك للرئيسية...</span>
+        <h4 style="font-weight: 800; color: #1b4b5a; margin-bottom: 12px;">تأكيد تسجيل الخروج</h4>
+        <p style="color: #64748b; font-size: 14px; margin: 0 0 25px 0; line-height: 1.6;">هل أنت متأكد من رغبتك في تسجيل الخروج من منصة عطاء؟</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button id="confirm-logout-yes" style="flex: 1; padding: 12px 20px; background-color: #dc3545; color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; transition: background-color 0.2s;">نعم، خروج</button>
+            <button id="confirm-logout-no" style="flex: 1; padding: 12px 20px; background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; transition: background-color 0.2s;">تراجع</button>
         </div>
     `;
 
-    overlay.appendChild(card);
-    document.body.appendChild(overlay);
+    confirmOverlay.appendChild(confirmCard);
+    document.body.appendChild(confirmOverlay);
 
-    // Trigger animations
+    // Animate in
     setTimeout(() => {
-        overlay.style.opacity = "1";
-        card.style.transform = "scale(1)";
+        confirmOverlay.style.opacity = "1";
+        confirmCard.style.transform = "scale(1)";
     }, 10);
 
-    // Redirect after 2 seconds
-    setTimeout(() => {
-        window.location.href = "index.html";
-    }, 2000);
+    // Cancel Button Click
+    confirmCard.querySelector("#confirm-logout-no").onclick = function() {
+        confirmOverlay.style.opacity = "0";
+        confirmCard.style.transform = "scale(0.85)";
+        setTimeout(() => {
+            confirmOverlay.remove();
+        }, 300);
+    };
+
+    // Confirm Button Click
+    confirmCard.querySelector("#confirm-logout-yes").onclick = function() {
+        // Remove confirmation dialog first
+        confirmOverlay.remove();
+
+        // Clear tokens
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        // Create a beautiful full-screen logout card overlay loader
+        const overlay = document.createElement("div");
+        overlay.style.position = "fixed";
+        overlay.style.top = "0";
+        overlay.style.left = "0";
+        overlay.style.width = "100vw";
+        overlay.style.height = "100vh";
+        overlay.style.backgroundColor = "rgba(27, 75, 90, 0.45)";
+        overlay.style.backdropFilter = "blur(8px)";
+        overlay.style.display = "flex";
+        overlay.style.justifyContent = "center";
+        overlay.style.alignItems = "center";
+        overlay.style.zIndex = "99999";
+        overlay.style.transition = "opacity 0.4s ease";
+        overlay.style.opacity = "0";
+        overlay.style.fontFamily = "'Tajawal', sans-serif";
+
+        const card = document.createElement("div");
+        card.style.background = "#ffffff";
+        card.style.borderRadius = "20px";
+        card.style.padding = "30px 40px";
+        card.style.boxShadow = "0 20px 40px rgba(0, 0, 0, 0.15)";
+        card.style.textAlign = "center";
+        card.style.maxWidth = "400px";
+        card.style.width = "90%";
+        card.style.transform = "scale(0.85)";
+        card.style.transition = "transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
+        card.style.direction = "rtl";
+
+        card.innerHTML = `
+            <div style="width: 70px; height: 70px; background: rgba(27, 75, 90, 0.08); color: #1b4b5a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 32px;">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </div>
+            <h4 style="font-weight: 800; color: #1b4b5a; margin-bottom: 8px;">تم تسجيل الخروج</h4>
+            <p style="color: #6b7280; font-size: 14px; margin: 0 0 20px 0;">تم تسجيل خروجك بنجاح من منصة عطاء.</p>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #1b4b5a; font-size: 13.5px; font-weight: 700;">
+                <svg viewBox="0 0 50 50" style="width: 20px; height: 20px; animation: logout-rotate 2s linear infinite;">
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="#1b4b5a" stroke-width="5" style="stroke-linecap: round; animation: logout-dash 1.5s ease-in-out infinite;"></circle>
+                </svg>
+                <span>جاري تحويلك للرئيسية...</span>
+            </div>
+        `;
+
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+
+        // Trigger animations
+        setTimeout(() => {
+            overlay.style.opacity = "1";
+            card.style.transform = "scale(1)";
+        }, 10);
+
+        // Redirect after 2 seconds
+        setTimeout(() => {
+            window.location.href = "index.html";
+        }, 2000);
+    };
 }
 
 // Global notifications functions
