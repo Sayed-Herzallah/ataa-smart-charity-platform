@@ -175,7 +175,7 @@
         لنمنح الملابس المستعملة فرصة جديدة تصنع فرقًا حقيقيًا في المجتمع.
       </p>
       <div class="hero-btns">
-        <a class="btn-primary" href="donation.html" onclick="document.getElementById('signupModal').classList.add('open')">
+        <a class="btn-primary" href="donation.html" onclick="if(!localStorage.getItem('token')){ event.preventDefault(); window.location.href='login-register.html?mode=register'; }">
           <i class="fas fa-heart"></i>
           ابدأ التبرع الآن
         </a>
@@ -342,7 +342,7 @@
     <p>انضم لآلاف المتبرعين الذين يصنعون فرقًا حقيقيًا في حياة المحتاجين كل يوم.</p>
   </div>
   <div class="cta-btns">
-    <button class="btn-gold" onclick="document.getElementById('signupModal').classList.add('open')">
+    <button class="btn-gold" onclick="window.location.href = localStorage.getItem('token') ? 'donation.html' : 'login-register.html?mode=register';">
       <i class="fas fa-heart"></i> تبرع الآن
     </button>
     <a href="charity.html" class="btn-outline">تعرف على الجمعيات</a>

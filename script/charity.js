@@ -72,6 +72,22 @@
 
 // =========================222222222222222222222222222===========================
 
+// فحص الأمان والصلاحيات فوراً قبل تحميل الصفحة
+(function checkSecurity() {
+    const localToken = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    let user = null;
+    try {
+        user = JSON.parse(userStr);
+    } catch (e) {}
+
+    if (!localToken || !user || user.roleType?.toLowerCase() !== "charity") {
+        alert("غير مصرح لك بالدخول لهذه الصفحة!");
+        window.location.href = "login-register.html?mode=login";
+        throw new Error("Unauthorized access");
+    }
+})();
+
 const BASE_URL = "https://ataa-charity-platform.vercel.app";
 
 const token = localStorage.getItem("token");
@@ -117,19 +133,13 @@ async function getStats() {
         const stats = data.stats || data;
 
         document.getElementById("total-donations").textContent =
-            stats.totalDonations ||
-            stats.donations ||
-            0;
+            stats.Total_Donations !== undefined ? stats.Total_Donations : (stats.totalDonations || stats.donations || 0);
 
         document.getElementById("beneficiary-requests").textContent =
-            stats.totalRequests ||
-            stats.requests ||
-            0;
+            stats.Pending_Donations !== undefined ? stats.Pending_Donations : (stats.totalRequests || stats.requests || 0);
 
         document.getElementById("active-volunteers").textContent =
-            stats.activeVolunteers ||
-            stats.volunteers ||
-            0;
+            stats.Accepted_Donations !== undefined ? stats.Accepted_Donations : (stats.activeVolunteers || stats.volunteers || 0);
 
     } catch (error) {
 

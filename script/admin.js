@@ -96,6 +96,22 @@
 // });
 
 // =========================2222222222222222222222222222222222222=======================
+// فحص الأمان والصلاحيات فوراً قبل تحميل الصفحة
+(function checkSecurity() {
+    const localToken = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    let user = null;
+    try {
+        user = JSON.parse(userStr);
+    } catch (e) {}
+
+    if (!localToken || !user || user.roleType?.toLowerCase() !== "admin") {
+        alert("غير مصرح لك بالدخول لهذه الصفحة!");
+        window.location.href = "login-register.html?mode=login";
+        throw new Error("Unauthorized access");
+    }
+})();
+
 const BASE_URL = "https://ataa-charity-platform.vercel.app";
 
 const token = localStorage.getItem("token");

@@ -72,31 +72,25 @@
 
 console.log("DONOR FILE LOADED");
 
-document.addEventListener(
-    "DOMContentLoaded",
-    async function () {
+// فحص الأمان والصلاحيات فوراً قبل تحميل الصفحة
+(function checkSecurity() {
+    const localToken = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    let user = null;
+    try {
+        user = JSON.parse(userStr);
+    } catch (e) {}
 
-        const token =
-            localStorage.getItem(
-                "token"
-            );
+    if (!localToken || !user || user.roleType?.toLowerCase() !== "user") {
+        alert("غير مصرح لك بالدخول لهذه الصفحة!");
+        window.location.href = "login-register.html?mode=login";
+        throw new Error("Unauthorized access");
+    }
+})();
 
-        // ==========================
-        // CHECK LOGIN
-        // ==========================
-        if (!token) {
-
-            alert(
-                "يجب تسجيل الدخول أولاً"
-            );
-
-            window.location.href =
-                "login-register.html?mode=login";
-
-            return;
-        }
-
-        let donations = [];
+document.addEventListener("DOMContentLoaded", async function () {
+    const token = localStorage.getItem("token");
+    let donations = [];
 
         try {
 
