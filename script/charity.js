@@ -159,11 +159,20 @@ async function fetchDonations() {
         const data = await response.json();
         console.log("DONATIONS FETCHED:", data);
 
-        allDonations = data.donations || data.data || [];
+        // Robust fallback for all possible API response formats
+        allDonations = data.donations || data.data || data.Data || (Array.isArray(data) ? data : []);
         renderDonationsPage();
 
     } catch (error) {
         console.log("Donations Fetch Error:", error);
+        const grid = document.getElementById("donations-grid");
+        if (grid) {
+            grid.innerHTML = `
+                <div class="alert alert-danger w-100 m-3" role="alert">
+                    <strong>حدث خطأ أثناء جلب البيانات من الخادم:</strong> ${error.message}
+                </div>
+            `;
+        }
     }
 }
 
@@ -174,113 +183,126 @@ function renderDonationsPage() {
     const grid = document.getElementById("donations-grid");
     if (!grid) return;
 
-    if (!allDonations.length) {
-        grid.innerHTML = `
-            <div class="text-center w-100 p-4 text-muted">
-                لا توجد تبرعات حالياً
-            </div>
-        `;
-        document.getElementById("prevPageBtn").disabled = true;
-        document.getElementById("nextPageBtn").disabled = true;
-        document.getElementById("pageIndicator").textContent = `الصفحة 1 من 1`;
-        return;
-    }
-
-    const startIndex = (currentPage - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginated = allDonations.slice(startIndex, endIndex);
-
-    grid.innerHTML = paginated.map(item => {
-        let actionsHtml = "";
-        const status = (item.status || "pending").toLowerCase();
-
-        if (status === "accepted" || status === "approved") {
-            actionsHtml = `<span class="badge bg-success">✓ تم القبول</span>`;
-        } else if (status === "rejected" || status === "refused") {
-            actionsHtml = `<span class="badge bg-danger">✕ تم الرفض</span>`;
-        } else {
-            actionsHtml = `
-                <div class="d-flex gap-2">
-                    <button
-                        class="btn btn-sm btn-success text-white px-3"
-                        onclick="updateDonationStatus('${item._id}', 'accepted', this)"
-                    >
-                       قبول
-                    </button>
-                    <button
-                        class="btn btn-sm btn-danger text-white px-3"
-                        onclick="updateDonationStatus('${item._id}', 'rejected', this)"
-                    >
-                       رفض
-                    </button>
+    try {
+        if (!allDonations.length) {
+            grid.innerHTML = `
+                <div class="text-center w-100 p-4 text-muted">
+                    لا توجد تبرعات حالياً
                 </div>
             `;
+            document.getElementById("prevPageBtn").disabled = true;
+            document.getElementById("nextPageBtn").disabled = true;
+            document.getElementById("pageIndicator").textContent = `الصفحة 1 من 1`;
+            return;
         }
 
-        // Image extraction
-        let imageHtml = "";
-        let imageSrc = "";
-        if (item.images && item.images.length > 0) {
-            imageSrc = item.images[0];
-        } else if (item.image) {
-            imageSrc = item.image;
-        } else if (item.imageUrl) {
-            imageSrc = item.imageUrl;
-        }
+        const startIndex = (currentPage - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginated = allDonations.slice(startIndex, endIndex);
 
-        if (imageSrc) {
-            if (imageSrc.startsWith('/')) {
-                imageSrc = BASE_URL + imageSrc;
+        grid.innerHTML = paginated.map(item => {
+            let actionsHtml = "";
+            const status = (item.status || "pending").toLowerCase();
+
+            if (status === "accepted" || status === "approved") {
+                actionsHtml = `<span class="badge bg-success">✓ تم القبول</span>`;
+            } else if (status === "rejected" || status === "refused") {
+                actionsHtml = `<span class="badge bg-danger">✕ تم الرفض</span>`;
+            } else {
+                actionsHtml = `
+                    <div class="d-flex gap-2">
+                        <button
+                            class="btn btn-sm btn-success text-white px-3"
+                            onclick="updateDonationStatus('${item._id}', 'accepted', this)"
+                        >
+                           قبول
+                        </button>
+                        <button
+                            class="btn btn-sm btn-danger text-white px-3"
+                            onclick="updateDonationStatus('${item._id}', 'rejected', this)"
+                        >
+                           رفض
+                        </button>
+                    </div>
+                `;
             }
-            imageHtml = `
-                <div class="donation-card-img-wrap" style="height: 180px; overflow: hidden; border-radius: 12px; margin-bottom: 16px; border: 1px solid #e5e7eb;">
-                    <img src="${imageSrc}" alt="صورة التبرع" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.style.display='none'">
-                </div>
-            `;
-        }
 
-        // Format Date
-        let dateStr = "";
-        if (item.createdAt) {
-            try {
-                dateStr = new Date(item.createdAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
-            } catch (e) {}
-        }
+            // Image extraction
+            let imageHtml = "";
+            let imageSrc = "";
+            if (item.images && item.images.length > 0) {
+                imageSrc = item.images[0];
+            } else if (item.image) {
+                imageSrc = item.image;
+            } else if (item.imageUrl) {
+                imageSrc = item.imageUrl;
+            }
 
-        return `
-            <div class="donation-card">
-                ${imageHtml}
-                <div class="donation-card-header" style="display:flex; justify-content:space-between; align-items:center; width:100%; border-bottom:1px solid #f3f4f6; padding-bottom:10px; margin-bottom:12px;">
-                    <span class="type-badge" style="background: rgba(27, 75, 90, 0.08); color: #1b4b5a; padding: 4px 12px; border-radius: 30px; font-weight: 700; font-size:12.5px;">${item.type || "تبرع ملابس"}</span>
-                    ${dateStr ? `<span class="text-muted" style="font-size: 11px;">${dateStr}</span>` : ''}
-                </div>
-                <div class="donation-card-body" style="text-align:right; flex-grow:1; margin-bottom:12px;">
-                    <div style="font-size:13.5px; color:#4b5563; line-height:1.6;">
-                        <div class="d-flex flex-wrap gap-3 mb-2">
-                            <span><strong>المقاس:</strong> ${item.size || "-"}</span>
-                            <span><strong>الكمية:</strong> ${item.quantity || 0}</span>
-                            <span><strong>الحالة:</strong> ${item.condition || "-"}</span>
+            if (imageSrc) {
+                if (imageSrc.startsWith('/')) {
+                    imageSrc = BASE_URL + imageSrc;
+                }
+                imageHtml = `
+                    <div class="donation-card-img-wrap" style="height: 180px; overflow: hidden; border-radius: 12px; margin-bottom: 16px; border: 1px solid #e5e7eb;">
+                        <img src="${imageSrc}" alt="صورة التبرع" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.style.display='none'">
+                    </div>
+                `;
+            }
+
+            // Format Date
+            let dateStr = "";
+            if (item.createdAt) {
+                try {
+                    dateStr = new Date(item.createdAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+                } catch (e) {}
+            }
+
+            return `
+                <div class="donation-card">
+                    ${imageHtml}
+                    <div class="donation-card-header" style="display:flex; justify-content:space-between; align-items:center; width:100%; border-bottom:1px solid #f3f4f6; padding-bottom:10px; margin-bottom:12px;">
+                        <span class="type-badge" style="background: rgba(27, 75, 90, 0.08); color: #1b4b5a; padding: 4px 12px; border-radius: 30px; font-weight: 700; font-size:12.5px;">${item.type || "تبرع ملابس"}</span>
+                        ${dateStr ? `<span class="text-muted" style="font-size: 11px;">${dateStr}</span>` : ''}
+                    </div>
+                    <div class="donation-card-body" style="text-align:right; flex-grow:1; margin-bottom:12px;">
+                        <div style="font-size:13.5px; color:#4b5563; line-height:1.6;">
+                            <div class="d-flex flex-wrap gap-3 mb-2">
+                                <span><strong>المقاس:</strong> ${item.size || "-"}</span>
+                                <span><strong>الكمية:</strong> ${item.quantity || 0}</span>
+                                <span><strong>الحالة:</strong> ${item.condition || "-"}</span>
+                            </div>
+                            ${item.description ? `
+                            <div style="border-top: 1px dashed #f3f4f6; padding-top: 8px; margin-top: 8px;">
+                                <strong>الوصف:</strong>
+                                <p style="margin: 4px 0 0 0; font-size: 12.5px; color: #6b7280; line-height: 1.5;">${item.description}</p>
+                            </div>
+                            ` : ''}
                         </div>
-                        ${item.description ? `
-                        <div style="border-top: 1px dashed #f3f4f6; padding-top: 8px; margin-top: 8px;">
-                            <strong>الوصف:</strong>
-                            <p style="margin: 4px 0 0 0; font-size: 12.5px; color: #6b7280; line-height: 1.5;">${item.description}</p>
-                        </div>
-                        ` : ''}
+                    </div>
+                    <div class="donation-card-footer actions-container" style="border-top:1px solid #f3f4f6; padding-top:12px; display:flex; justify-content:flex-end;">
+                        ${actionsHtml}
                     </div>
                 </div>
-                <div class="donation-card-footer actions-container" style="border-top:1px solid #f3f4f6; padding-top:12px; display:flex; justify-content:flex-end;">
-                    ${actionsHtml}
-                </div>
+            `;
+        }).join("");
+
+        // Update pagination controls
+        const totalPages = Math.ceil(allDonations.length / limit) || 1;
+        document.getElementById("prevPageBtn").disabled = currentPage === 1;
+        document.getElementById("nextPageBtn").disabled = endIndex >= allDonations.length;
+        document.getElementById("pageIndicator").textContent = `الصفحة ${currentPage} من ${totalPages}`;
+
+    } catch (err) {
+        console.error("Rendering Error:", err);
+        grid.innerHTML = `
+            <div class="alert alert-danger w-100 m-3" role="alert">
+                <strong>حدث خطأ أثناء عرض التبرعات:</strong> ${err.message}
+                <pre class="mt-2 text-start" style="font-size: 11px; direction: ltr;">${err.stack}</pre>
+                <div class="mt-2"><strong>البيانات المستلمة:</strong></div>
+                <pre class="text-start" style="font-size: 11px; direction: ltr; white-space: pre-wrap;">${JSON.stringify(allDonations, null, 2)}</pre>
             </div>
         `;
-    }).join("");
-
-    // Update pagination controls
-    const totalPages = Math.ceil(allDonations.length / limit) || 1;
-    document.getElementById("prevPageBtn").disabled = currentPage === 1;
-    document.getElementById("nextPageBtn").disabled = endIndex >= allDonations.length;
-    document.getElementById("pageIndicator").textContent = `الصفحة ${currentPage} من ${totalPages}`;
+    }
 }
 
 /* =========================
