@@ -814,36 +814,51 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log(data);
 
                     const token =
-                        data.tokens?.accessToken;
+                        data.token || 
+                        data.accessToken || 
+                        data.tokens?.accessToken || 
+                        data.data?.token || 
+                        data.data?.accessToken;
                     let payload = null;
 
                     if (token) {
+                        try {
+                            payload =
+                                JSON.parse(
+                                    atob(
+                                        token.split('.')[1]
+                                    )
+                                );
 
-                        payload =
-                            JSON.parse(
-                                atob(
-                                    token.split('.')[1]
-                                )
+                            console.log(
+                                'TOKEN PAYLOAD:',
+                                payload
                             );
 
-                        console.log(
-                            'TOKEN PAYLOAD:',
-                            payload
-                        );
+                            // حفظ التوكن
+                            localStorage.setItem(
+                                'token',
+                                token
+                            );
 
-                        // حفظ التوكن
-                        localStorage.setItem(
-                            'token',
-                            token
-                        );
+                            // حفظ بيانات اليوزر بشكل مدمج لضمان وجود جميع الحقول
+                            const userObj = {
+                                ...(data.user || data.data?.user || {}),
+                                ...payload,
+                                roleType: payload.roleType || payload.role || data.user?.roleType || data.data?.user?.roleType
+                            };
 
-                        // حفظ بيانات اليوزر
-                        localStorage.setItem(
-                            'user',
-                            JSON.stringify(
-                                payload
-                            )
-                        );
+                            localStorage.setItem(
+                                'user',
+                                JSON.stringify(
+                                    userObj
+                                )
+                            );
+                        } catch (err) {
+                            console.error("Error parsing token/payload:", err);
+                        }
+                    } else {
+                        console.error("Token not found in response:", data);
                     }
 
                     if (response.ok) {
@@ -861,18 +876,37 @@ document.addEventListener('DOMContentLoaded', () => {
                         }).then(() => {
                             // التحويل للوحة التحكم مباشرة حسب الصلاحية
                             let dashboardLink = 'index.html';
-                            if (payload) {
-                                switch (payload.roleType?.toLowerCase()) {
-                                    case 'user':
-                                        dashboardLink = 'donor-dashboard.html';
-                                        break;
-                                    case 'charity':
-                                        dashboardLink = 'charity-dashboard.html';
-                                        break;
-                                    case 'admin':
-                                        dashboardLink = 'admin-dashboard.html';
-                                        break;
-                                }
+                            let userRole = "";
+
+                            const storedUserStr = localStorage.getItem("user");
+                            if (storedUserStr) {
+                                try {
+                                    const u = JSON.parse(storedUserStr);
+                                    userRole = u.roleType || u.role || "";
+                                } catch (e) {}
+                            }
+
+                            if (!userRole && payload) {
+                                userRole = payload.roleType || payload.role || "";
+                            }
+
+                            userRole = userRole.toLowerCase().trim();
+                            console.log("Redirecting user with role:", userRole);
+
+                            switch (userRole) {
+                                case 'user':
+                                case 'donor':
+                                    dashboardLink = 'donor-dashboard.html';
+                                    break;
+                                case 'charity':
+                                    dashboardLink = 'charity-dashboard.html';
+                                    break;
+                                case 'admin':
+                                    dashboardLink = 'admin-dashboard.html';
+                                    break;
+                                default:
+                                    dashboardLink = 'index.html';
+                                    break;
                             }
                             window.location.href = dashboardLink;
                         });
