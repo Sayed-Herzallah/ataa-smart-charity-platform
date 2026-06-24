@@ -533,62 +533,111 @@ function updateStats() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   NOTIFICATIONS
+   ADMIN TASKS (LocalStorage Persistence)
    ══════════════════════════════════════════════════════════════════════════ */
 
-async function loadNotifications() {
-    try {
-        const res = await fetch(`${BASE_URL}/notification`, {
-            headers: { Authorization: token }
-        });
-        const data = await res.json();
-        const notifications = data.notifications || data.data || [];
+let adminTasks = [];
 
-        const countBadge = document.getElementById("notifications-count");
-        const list = document.getElementById("notification-list");
-
-        if (countBadge) countBadge.textContent = notifications.length;
-
-        if (!list) return;
-
-        if (!notifications.length) {
-            list.innerHTML = `<li class="dropdown-item text-center text-muted py-3">لا توجد إشعارات</li>`;
-            return;
+function loadTasks() {
+    const tasksStr = localStorage.getItem("admin_tasks");
+    if (tasksStr) {
+        try {
+            adminTasks = JSON.parse(tasksStr);
+        } catch (e) {
+            console.error("Error parsing tasks:", e);
+            adminTasks = [];
         }
+    } else {
+        // Default tasks if empty
+        adminTasks = [
+            { id: 1, text: "مراجعة طلبات الجمعيات الجديدة المعلقة", completed: false },
+            { id: 2, text: "تحديث قائمة المتبرعين النشطين وتصديرها", completed: false }
+        ];
+        saveTasks();
+    }
+    renderTasks();
+}
 
-        list.innerHTML = notifications.map(n => `
-            <li class="dropdown-item d-flex justify-content-between align-items-center gap-2" style="border-bottom:1px solid #f3f4f6;padding:10px 12px;">
-                <span style="font-size:13px;color:#475569;">${n.message || n.title || "إشعار جديد"}</span>
-                <div class="d-flex gap-1">
-                    <button class="btn btn-sm btn-success p-1" onclick="markNotificationRead('${n._id}')" style="font-size:10px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:6px;">✓</button>
-                    <button class="btn btn-sm btn-danger p-1" onclick="deleteNotification('${n._id}')" style="font-size:10px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:6px;">✕</button>
-                </div>
-            </li>
-        `).join("");
-    } catch (e) {
-        console.error("NOTIFICATIONS ERROR:", e);
+function saveTasks() {
+    localStorage.setItem("admin_tasks", JSON.stringify(adminTasks));
+}
+
+function renderTasks() {
+    const list = document.getElementById("tasks-list");
+    const countEl = document.getElementById("tasks-count");
+    if (!list) return;
+
+    if (adminTasks.length === 0) {
+        list.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="fa-solid fa-list-check d-block fs-3 mb-2" style="opacity:0.4;"></i>
+                <span>لا توجد مهام حالياً. أضف مهمة جديدة بالأعلى!</span>
+            </div>
+        `;
+        if (countEl) countEl.textContent = "0 مهمة متبقية";
+        return;
+    }
+
+    const remaining = adminTasks.filter(t => !t.completed).length;
+    if (countEl) {
+        countEl.textContent = `${remaining} مهمة متبقية`;
+    }
+
+    list.innerHTML = adminTasks.map(task => `
+        <li class="task-item">
+            <div class="task-checkbox-container" onclick="toggleTask(${task.id})">
+                <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} readonly>
+                <span class="task-text">${task.text}</span>
+            </div>
+            <button class="btn-delete-task" onclick="deleteTask(${task.id}); event.stopPropagation();" title="حذف المهمة">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+        </li>
+    `).join("");
+}
+
+function addTask(text) {
+    const newTask = {
+        id: Date.now(),
+        text: text,
+        completed: false
+    };
+    adminTasks.push(newTask);
+    saveTasks();
+    renderTasks();
+    showToast("تم إضافة المهمة بنجاح", "success");
+}
+
+function toggleTask(id) {
+    const task = adminTasks.find(t => t.id === id);
+    if (task) {
+        task.completed = !task.completed;
+        saveTasks();
+        renderTasks();
     }
 }
 
-async function markNotificationRead(id) {
-    try {
-        const res = await fetch(`${BASE_URL}/notification/${id}`, {
-            method: "PATCH",
-            headers: { Authorization: token, "Content-Type": "application/json" },
-            body: JSON.stringify({ status: "read" })
-        });
-        if (res.ok) loadNotifications();
-    } catch (e) { console.error(e); }
+function deleteTask(id) {
+    adminTasks = adminTasks.filter(t => t.id !== id);
+    saveTasks();
+    renderTasks();
+    showToast("تم حذف المهمة", "warning");
 }
 
-async function deleteNotification(id) {
-    try {
-        const res = await fetch(`${BASE_URL}/notification/${id}`, {
-            method: "DELETE",
-            headers: { Authorization: token }
-        });
-        if (res.ok) loadNotifications();
-    } catch (e) { console.error(e); }
+// Bind task form
+function initTaskEvents() {
+    const form = document.getElementById("add-task-form");
+    const input = document.getElementById("task-input");
+    if (form && input) {
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            const text = input.value.trim();
+            if (text) {
+                addTask(text);
+                input.value = "";
+            }
+        };
+    }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -598,5 +647,6 @@ async function deleteNotification(id) {
 document.addEventListener("DOMContentLoaded", () => {
     loadUsers();
     loadCharities();
-    loadNotifications();
+    loadTasks();
+    initTaskEvents();
 });

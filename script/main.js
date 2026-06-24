@@ -84,37 +84,26 @@ window.addEventListener("scroll", () => {
 // ===============================
 // DOM Loaded
 // ===============================
+function initHamburger() {
+  const ham = document.getElementById("hamBtn");
+  const mob = document.getElementById("mobileNav");
+  if (ham && mob && !ham.dataset.bound) {
+    ham.dataset.bound = "true";
+    ham.addEventListener("click", () => {
+      ham.classList.toggle("open");
+      mob.classList.toggle("open");
+    });
+  }
+}
+
+if (document.readyState !== "loading") {
+  initHamburger();
+}
+
 document.addEventListener(
   "DOMContentLoaded",
   () => {
-
-    // ===============================
-    // Hamburger menu
-    // ===============================
-    const ham =
-      document.getElementById(
-        "hamBtn"
-      );
-
-    const mob =
-      document.getElementById(
-        "mobileNav"
-      );
-
-    if (ham && mob) {
-      ham.addEventListener(
-        "click",
-        () => {
-          ham.classList.toggle(
-            "open"
-          );
-
-          mob.classList.toggle(
-            "open"
-          );
-        }
-      );
-    }
+    initHamburger();
 
     // ===============================
     // Login / Register Mode
@@ -387,7 +376,8 @@ if (navActions) {
     // ===============================
     // Logged User Navbar
     // ===============================
-    const notificationsHtml = `
+    const isAdminDashboard = window.location.pathname.includes("admin-dashboard.html");
+    const notificationsHtml = isAdminDashboard ? "" : `
       <!-- Notification Dropdown -->
       <div class="dropdown me-3" style="position: relative; display: inline-block;">
           <button class="btn p-0 border-0 position-relative" type="button" id="notificationsDropdown" style="background: transparent; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border-radius: 50%; transition: background 0.3s;">
@@ -427,7 +417,9 @@ if (navActions) {
     `;
 
     // Load notifications
-    loadNotifications();
+    if (!isAdminDashboard) {
+      loadNotifications();
+    }
   }
 }
   }

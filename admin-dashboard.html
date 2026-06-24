@@ -36,16 +36,6 @@
         </div>
 
         <div class="nav-actions" id="navActions">
-            <div class="dropdown me-3">
-                <button class="btn p-0 border-0 position-relative" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background: transparent;">
-                    <i class="fa-solid fa-bell fs-5" style="color: #1b4b5a;"></i>
-                    <span id="notifications-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 9px; padding: 2px 4px;">0</span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow p-2" id="notification-list" aria-labelledby="notificationsDropdown" style="width: 300px; max-height: 350px; overflow-y: auto; border-radius: 12px; border: none; font-size: 13px;">
-                    <li class="text-center text-muted p-3">جاري تحميل الإشعارات...</li>
-                </ul>
-            </div>
-
             <a href="settings.html" class="settings-btn" title="الإعدادات">
                 <i class="fa-solid fa-gear"></i>
             </a>
@@ -101,6 +91,29 @@
             <p>جمعيات معتمدة</p>
             <h4 id="total-approved">0</h4>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Admin Tasks Section ═══ -->
+    <div class="row g-4 mb-4">
+      <div class="col-12">
+        <div class="card shadow-sm p-4 admin-tasks-card">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h5 class="fw-bold m-0"><i class="fa-solid fa-list-check me-2" style="color:#1b4b5a;"></i>مهام المدير</h5>
+            <span class="badge tasks-badge" id="tasks-count">0 مهمة متبقية</span>
+          </div>
+          
+          <!-- Add Task Form -->
+          <form id="add-task-form" class="mb-3 d-flex gap-2">
+            <input type="text" id="task-input" class="form-control premium-input" placeholder="اكتب مهمة جديدة هنا..." required>
+            <button type="submit" class="btn btn-teal-action"><i class="fa-solid fa-plus me-1"></i>إضافة مهمة</button>
+          </form>
+
+          <!-- Tasks List -->
+          <ul class="list-group list-group-flush premium-task-list" id="tasks-list">
+            <!-- Tasks will be loaded here dynamically -->
+          </ul>
         </div>
       </div>
     </div>

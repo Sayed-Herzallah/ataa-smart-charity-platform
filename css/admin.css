@@ -428,3 +428,224 @@ body {
   animation: spin 0.7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive Tables & Custom Scrollbar ── */
+.table-responsive {
+  border-radius: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.table-responsive::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Ensure table doesn't shrink and force horizontal scrolling on small screens */
+.my-dashboard .table {
+  min-width: 900px !important;
+}
+
+/* ── Admin Tasks Card Styling (Premium) ── */
+.admin-tasks-card {
+  border: none !important;
+  border-radius: 20px !important;
+  background: #ffffff !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s ease;
+}
+.admin-tasks-card:hover {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08) !important;
+}
+
+.tasks-badge {
+  background: rgba(27, 75, 90, 0.1) !important;
+  color: #1b4b5a !important;
+  font-size: 13px !important;
+  padding: 6px 14px !important;
+  border-radius: 30px !important;
+  font-weight: 700 !important;
+}
+
+.premium-input {
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 12px 18px !important;
+  font-size: 14px !important;
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+  transition: all 0.25s ease !important;
+}
+.premium-input:focus {
+  border-color: #1b4b5a !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 3.5px rgba(27, 75, 90, 0.15) !important;
+}
+
+.btn-teal-action {
+  background: linear-gradient(135deg, #1b4b5a 0%, #2e8e98 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 0 24px !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  transition: all 0.25s ease !important;
+  white-space: nowrap;
+}
+.btn-teal-action:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 15px rgba(27, 75, 90, 0.25) !important;
+  opacity: 0.95;
+}
+.btn-teal-action:active {
+  transform: translateY(0);
+}
+
+.premium-task-list {
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.premium-task-list::-webkit-scrollbar {
+  width: 5px;
+}
+.premium-task-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.premium-task-list::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.task-item {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px !important;
+  margin-bottom: 10px !important;
+  background: #ffffff !important;
+  border: 1px solid #f1f5f9 !important;
+  border-radius: 12px !important;
+  transition: all 0.25s ease !important;
+  animation: taskFadeIn 0.3s ease forwards;
+}
+.task-item:hover {
+  transform: translateX(-4px);
+  border-color: #cbd5e1 !important;
+  background-color: #f8fafc !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02) !important;
+}
+
+.task-checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  flex-grow: 1;
+}
+
+.task-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #cbd5e1;
+  border-radius: 6px;
+  outline: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  position: relative;
+  flex-shrink: 0;
+}
+.task-checkbox:checked {
+  background-color: #1b4b5a;
+  border-color: #1b4b5a;
+}
+.task-checkbox:checked::after {
+  content: '\f00c';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  color: #ffffff;
+  font-size: 11px;
+  position: absolute;
+}
+.task-checkbox:focus-visible {
+  box-shadow: 0 0 0 3px rgba(27, 75, 90, 0.2);
+}
+
+.task-text {
+  font-size: 14.5px;
+  color: #334155;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  word-break: break-word;
+}
+.task-checkbox:checked + .task-text {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+.btn-delete-task {
+  background: transparent;
+  color: #94a3b8;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.btn-delete-task:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+@keyframes taskFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Table Card Refinements */
+.my-dashboard .card {
+  border-radius: 20px !important;
+  border: none !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
+  overflow: hidden;
+}
+
+/* Adjust table hover */
+.my-dashboard .table tbody tr {
+  transition: all 0.2s ease;
+}
+.my-dashboard .table tbody tr:hover {
+  background-color: rgba(27, 75, 90, 0.02) !important;
+}
+
+/* Actions Group button padding fix */
+.actions-group .btn-view,
+.actions-group .btn-approve,
+.actions-group .btn-reject,
+.actions-group .btn-delete {
+  padding: 8px 14px !important;
+  font-size: 12.5px !important;
+  border-radius: 8px !important;
+}
