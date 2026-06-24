@@ -1,6 +1,6 @@
 /**
  * ATAA Smart Charity Platform - Charity Dashboard Script
- * Last Updated: June 2026
+ * Last Updated: 2026-06-24
  * Updates: Activated notifications, custom alert/logout confirmation modals, and hidden scrollbars.
  */
 // Security and Authorisation Check
