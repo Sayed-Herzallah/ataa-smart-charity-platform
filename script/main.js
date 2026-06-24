@@ -70,6 +70,111 @@
 // ===============================
 // Navbar scroll
 // ===============================
+// Custom Toast system replacing standard alert
+function showToast(message, type = "info") {
+    let container = document.getElementById("toast-container");
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "toast-container";
+        container.style.position = "fixed";
+        container.style.top = "20px";
+        container.style.left = "50%";
+        container.style.transform = "translateX(-50%)";
+        container.style.zIndex = "999999";
+        container.style.display = "flex";
+        container.style.flexDirection = "column";
+        container.style.gap = "10px";
+        container.style.width = "90%";
+        container.style.maxWidth = "400px";
+        container.style.pointerEvents = "none";
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement("div");
+    toast.style.pointerEvents = "auto";
+    toast.style.background = "#ffffff";
+    toast.style.borderRadius = "12px";
+    toast.style.padding = "16px 20px";
+    toast.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.1)";
+    toast.style.display = "flex";
+    toast.style.alignItems = "center";
+    toast.style.gap = "12px";
+    toast.style.border = "1px solid #e2e8f0";
+    toast.style.direction = "rtl";
+    toast.style.fontFamily = "'Tajawal', sans-serif";
+    toast.style.transform = "translateY(-20px)";
+    toast.style.opacity = "0";
+    toast.style.transition = "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
+
+    // Set colors based on type
+    let icon = "fa-info-circle";
+    let iconColor = "#3b82f6";
+    let bgColor = "rgba(59, 130, 246, 0.08)";
+    let borderColor = "rgba(59, 130, 246, 0.15)";
+    
+    if (type === "success") {
+        icon = "fa-circle-check";
+        iconColor = "#10b981";
+        bgColor = "rgba(16, 185, 129, 0.08)";
+        borderColor = "rgba(16, 185, 129, 0.15)";
+    } else if (type === "error" || type === "danger") {
+        icon = "fa-circle-xmark";
+        iconColor = "#ef4444";
+        bgColor = "rgba(239, 68, 68, 0.08)";
+        borderColor = "rgba(239, 68, 68, 0.15)";
+    } else if (type === "warning") {
+        icon = "fa-triangle-exclamation";
+        iconColor = "#f59e0b";
+        bgColor = "rgba(245, 158, 11, 0.08)";
+        borderColor = "rgba(245, 158, 11, 0.15)";
+    }
+
+    toast.style.background = `linear-gradient(135deg, #ffffff 0%, ${bgColor} 100%)`;
+    toast.style.borderColor = borderColor;
+
+    toast.innerHTML = `
+        <div style="font-size: 20px; color: ${iconColor}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <i class="fa-solid ${icon}"></i>
+        </div>
+        <span style="font-size: 13.5px; font-weight: 700; color: #1b4b5a; flex-grow: 1; line-height: 1.5; text-align: right;">${message}</span>
+        <button style="border: none; background: transparent; color: #94a3b8; cursor: pointer; padding: 0 4px; font-size: 14px; transition: color 0.2s;" onclick="this.parentElement.style.opacity='0'; this.parentElement.style.transform='translateY(-20px)'; setTimeout(() => this.parentElement.remove(), 400);">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    `;
+
+    container.appendChild(toast);
+
+    // Trigger animation
+    setTimeout(() => {
+        toast.style.transform = "translateY(0)";
+        toast.style.opacity = "1";
+    }, 10);
+
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.style.transform = "translateY(-20px)";
+            toast.style.opacity = "0";
+            setTimeout(() => {
+                if (toast.parentNode) toast.remove();
+            }, 400);
+        }
+    }, 4000);
+}
+
+// Override native alert globally
+window.alert = function(msg) {
+    if (msg.includes("غير مصرح") || msg.includes("خطأ") || msg.includes("فشل") || msg.includes("لا تملك")) {
+        showToast(msg, "error");
+    } else if (msg.includes("نجاح") || msg.includes("بنجاح") || msg.includes("تم ")) {
+        showToast(msg, "success");
+    } else {
+        showToast(msg, "warning");
+    }
+};
+
+window.showToast = showToast;
+
 window.addEventListener("scroll", () => {
   const navbar = document.getElementById("navbar");
 

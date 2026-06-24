@@ -1,240 +1,483 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>لوحة تحكم المتبرع | عطاء</title>
-
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer" />
-
-
-
-<link rel="stylesheet" href="css/all.css">
-<link rel="stylesheet" href="css/main.css">
-<link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="./css/donor.css">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-rel="stylesheet"
-media="print"
-onload="this.media='all'">
+    
+    <!-- CDNs -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Local Styles -->
+    <link rel="stylesheet" href="css/all.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/donor.css">
 </head>
+<body class="dashboard-body">
 
-<body>
-
-    <!-- ══════ NAVBAR ══════ -->
-<nav class="navbar" id="navbar">
-    <div class="nav-inner">
-
-        <a href="index.html" class="nav-logo">
-            <img src="images/logo.png"
-                alt="logo"
-                class="logo-img">
-        </a>
-
-        <div class="nav-links">
-            <a href="index.html">
-                الرئيسية
-            </a>
-
-            <a href="charity.html">
-                الجمعيات
-            </a>
-
-            <a href="ai-chat.html">
-                المساعد الذكي
-            </a>
-
-            <a href="about.html">
-                عن المنصة
-            </a>
-
-            <a href="contact.html">
-                تواصل معنا
-            </a>
+<div class="ap-layout">
+    <!-- ══════ SIDEBAR ══════ -->
+    <aside class="ap-sidebar" id="sidebar">
+        <div class="ap-sidebar-brand">
+            <div class="ap-brand-icon"><i class="ti ti-user-circle"></i></div>
+            <span class="ap-brand-title">لوحة التحكم</span>
+            <button class="ap-collapse-btn" id="sidebarCollapseBtn" title="طي الشريط الجانبي">
+                <i class="ti ti-layout-sidebar-right-collapse"></i>
+            </button>
         </div>
-
-        <div class="nav-actions" id="navActions">
-
-            <a class="nav-btn-login"
-                href="login-register.html?mode=login">
-                دخول
+        
+        <nav class="ap-sidebar-nav">
+            <button class="ap-nav-item active" data-tab="stats">
+                <span class="ap-nav-icon-wrap"><i class="ti ti-layout-dashboard"></i></span>
+                <span class="ap-nav-label">نظرة عامة</span>
+                <span class="ap-nav-active-bar"></span>
+            </button>
+            <button class="ap-nav-item" data-tab="new-donation">
+                <span class="ap-nav-icon-wrap"><i class="ti ti-plus"></i></span>
+                <span class="ap-nav-label">تبرع جديد</span>
+                <span class="ap-nav-active-bar"></span>
+            </button>
+            <button class="ap-nav-item" data-tab="donations">
+                <span class="ap-nav-icon-wrap"><i class="ti ti-packages"></i></span>
+                <span class="ap-nav-label">تبرعاتي السابقة</span>
+                <span class="ap-nav-active-bar"></span>
+            </button>
+            <button class="ap-nav-item" data-tab="settings">
+                <span class="ap-nav-icon-wrap"><i class="ti ti-settings"></i></span>
+                <span class="ap-nav-label">الإعدادات</span>
+                <span class="ap-nav-active-bar"></span>
+            </button>
+            <button class="ap-nav-item" data-tab="chat">
+                <span class="ap-nav-icon-wrap"><i class="ti ti-robot"></i></span>
+                <span class="ap-nav-label">مساعد عطاء</span>
+                <span class="ap-nav-active-bar"></span>
+            </button>
+            
+            <hr style="border-top: 1px solid var(--border); margin: 10px 0;">
+            
+            <a href="index.html" class="ap-nav-item">
+                <span class="ap-nav-icon-wrap"><i class="ti ti-home"></i></span>
+                <span class="ap-nav-label">الرئيسية</span>
             </a>
-
-            <a class="nav-btn-signup"
-                href="login-register.html?mode=register">
-                حساب جديد
+            <a href="charity.html" class="ap-nav-item">
+                <span class="ap-nav-icon-wrap"><i class="ti ti-building-community"></i></span>
+                <span class="ap-nav-label">الجمعيات</span>
             </a>
-
+        </nav>
+        
+        <div class="ap-sidebar-footer">
+            <div class="ap-sidebar-user" onclick="switchSettingsTab('profile')">
+                <div class="ap-user-avatar" id="user-avatar-initial">م</div>
+                <div class="ap-user-meta">
+                    <span class="ap-user-name" id="user-display-name">المتبرع الكريم</span>
+                    <span class="ap-user-role">متبرع عطاء</span>
+                </div>
+            </div>
+            <button class="ap-sidebar-logout" id="logoutBtn">
+                <i class="ti ti-logout"></i>
+                <span>تسجيل الخروج</span>
+            </button>
         </div>
+    </aside>
 
-        <button class="nav-ham"
-            id="hamBtn">
+    <!-- ══════ MAIN CONTENT ══════ -->
+    <main class="ap-main">
+        <header class="ap-page-header">
+            <div class="ap-page-header-left">
+                <div class="ap-page-breadcrumb">
+                    <i class="ti ti-user-circle" style="color: var(--teal);"></i>
+                    <span>لوحة التحكم</span>
+                    <i class="ti ti-chevron-left" style="font-size: 11px; color: var(--t4);"></i>
+                    <span style="color: var(--t1); font-weight: 700;" id="breadcrumb-current-tab">نظرة عامة</span>
+                </div>
+                <div class="ap-header-live-badge ms-3">
+                    <span class="ap-live-dot"></span>
+                    <span class="ap-header-live-time" id="header-live-clock">--:--:--</span>
+                </div>
+            </div>
+            
+            <div class="ap-page-header-right">
+                <button class="ap-header-icon-btn text-danger" id="reportBtn" title="الإبلاغ عن مشكلة">
+                    <i class="ti ti-alert-octagon"></i>
+                </button>
+                <button class="ap-header-icon-btn" id="refreshBtn" title="تحديث البيانات">
+                    <i class="ti ti-refresh"></i>
+                </button>
+                <button class="ap-header-icon-btn" id="themeToggleBtn" title="تبديل الوضع">
+                    <i class="ti ti-moon"></i>
+                </button>
+                
+                <!-- Notifications Bell -->
+                <div class="dropdown">
+                    <button class="ap-header-icon-btn" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-bell"></i>
+                        <span id="notifications-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 9px; padding: 2px 4px; display: none;">0</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow p-2" id="notifications-list" aria-labelledby="notificationsDropdown" style="width: 300px; max-height: 350px; overflow-y: auto; border-radius: 12px; border: none; font-size: 13px;">
+                        <li class="text-center text-muted p-3">جاري تحميل الإشعارات...</li>
+                    </ul>
+                </div>
+            </div>
+        </header>
 
-            <span></span>
-            <span></span>
-            <span></span>
+        <div class="ap-content" id="content">
+            
+            <!-- ══ Tab 1: Stats Overview ══ -->
+            <div class="ap-tab-pane active" id="tab-stats">
+                <div class="ap-kpi-grid">
+                    <div class="ap-kpi-card" style="border-right: 4px solid var(--teal);">
+                        <div class="ap-kpi-icon-wrap"><i class="ti ti-gift"></i></div>
+                        <div class="ap-kpi-value" id="kpi-total">0</div>
+                        <div class="ap-kpi-label">إجمالي التبرعات</div>
+                    </div>
+                    <div class="ap-kpi-card" style="border-right: 4px solid var(--amber);">
+                        <div class="ap-kpi-icon-wrap" style="background: var(--amber-dim); color: var(--amber);"><i class="ti ti-clock"></i></div>
+                        <div class="ap-kpi-value" id="kpi-pending">0</div>
+                        <div class="ap-kpi-label">تبرعات قيد المراجعة</div>
+                    </div>
+                    <div class="ap-kpi-card" style="border-right: 4px solid var(--green);">
+                        <div class="ap-kpi-icon-wrap" style="background: var(--green-dim); color: var(--green);"><i class="ti ti-circle-check"></i></div>
+                        <div class="ap-kpi-value" id="kpi-accepted">0</div>
+                        <div class="ap-kpi-label">تبرعات مقبولة</div>
+                    </div>
+                </div>
 
-        </button>
+                <div class="ap-dashboard-grid">
+                    <!-- Right side: Stats & Trust -->
+                    <div class="d-flex flex-column gap-3">
+                        <div class="smart-widget">
+                            <h5 class="mb-3"><i class="ti ti-award text-success me-1"></i>حالة قبول تبرعاتك</h5>
+                            <div class="mb-2 d-flex justify-content-between font-weight-bold" style="font-size: 12.5px;">
+                                <span>نسبة قبول التبرعات</span>
+                                <span id="trustValueText">0%</span>
+                            </div>
+                            <div class="progress">
+                                <div id="trustBar" class="progress-bar bg-success" style="width: 0%">0%</div>
+                            </div>
+                            <p class="text-muted mt-2" style="font-size: 11.5px; line-height: 1.5;">يعبر هذا الشريط عن نسبة التبرعات التي تم قبولها واستلامها من قبل الجمعيات الخيرية بنجاح مقارنة بإجمالي التبرعات التي قمت بتقديمها.</p>
+                        </div>
+                        
+                        <!-- Sizes -->
+                        <div class="smart-widget">
+                            <h5 class="mb-3 text-center"><i class="ti ti-ruler text-primary me-1"></i>المقاسات المتبرع بها</h5>
+                            <div id="sizesBox" class="sizes-box">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
 
-    </div>
-</nav>
+                    <!-- Left side: Chart -->
+                    <div class="smart-widget d-flex flex-column justify-content-between">
+                        <h5><i class="ti ti-chart-bar text-teal me-1"></i>إحصائيات التبرع بالمنصة</h5>
+                        <div style="height: 250px; position: relative; margin-top: 15px;">
+                            <canvas id="donationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ══ Tab 2: New Donation ══ -->
+            <div class="ap-tab-pane" id="tab-new-donation">
+                <div class="ap-settings-card">
+                    <div class="ap-settings-card-title">
+                        <div class="ap-settings-icon bg-success text-white"><i class="ti ti-plus"></i></div>
+                        <span>تقديم تبرع جديد بملابس</span>
+                    </div>
+                    
+                    <form id="donationForm" class="d-flex flex-column gap-3" enctype="multipart/form-data">
+                        <div class="row g-3">
+                            <!-- Type -->
+                            <div class="col-md-6 form-group">
+                                <label class="ap-form-label">نوع الملابس <span class="text-danger">*</span></label>
+                                <select id="category" name="type" class="ap-form-select" required>
+                                    <option value="" disabled selected>اختر النوع...</option>
+                                    <option value="رجال">رجال</option>
+                                    <option value="حريمي">حريمي</option>
+                                    <option value="أطفال">أطفال</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Size -->
+                            <div class="col-md-6 form-group">
+                                <label class="ap-form-label">المقاس <span class="text-danger">*</span></label>
+                                <select id="size" name="size" class="ap-form-select" required>
+                                    <option value="" disabled selected>اختر المقاس...</option>
+                                    <option value="XS">XS</option>
+                                    <option value="S">S</option>
+                                    <option value="M">M</option>
+                                    <option value="L">L</option>
+                                    <option value="XL">XL</option>
+                                    <option value="XXL">XXL</option>
+                                    <option value="Free">مقاس حر</option>
+                                </select>
+                            </div>
+                        </div>
 
+                        <div class="row g-3 align-items-center">
+                            <!-- Quantity -->
+                            <div class="col-md-6 form-group">
+                                <label class="ap-form-label">العدد / الكمية <span class="text-danger">*</span></label>
+                                <div class="quantity-wrapper">
+                                    <button type="button" class="qty-btn" id="qty-plus">+</button>
+                                    <input type="number" id="quantity" name="quantity" class="quantity-input" value="1" min="1" readonly>
+                                    <button type="button" class="qty-btn" id="qty-minus">-</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Image picker -->
+                            <div class="col-md-6 form-group">
+                                <label class="ap-form-label">صورة التبرع (صورة حقيقية للملابس)</label>
+                                <input type="file" id="image" name="image" class="ap-form-input py-1" accept="image/*">
+                            </div>
+                        </div>
 
-<!-- Mobile Menu -->
-<div class="mobile-nav"
-    id="mobileNav">
+                        <!-- Condition -->
+                        <div class="form-group">
+                            <label class="ap-form-label">حالة الملابس <span class="text-danger">*</span></label>
+                            <div class="radio-grid">
+                                <label class="radio-card">
+                                    <input type="radio" name="condition" value="جديدة" checked>
+                                    <div class="radio-card-content"><i class="fa-solid fa-star"></i>جديدة</div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="condition" value="ممتازة">
+                                    <div class="radio-card-content">ممتازة</div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="condition" value="جيدة">
+                                    <div class="radio-card-content">جيدة</div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="condition" value="مقبولة">
+                                    <div class="radio-card-content">مقبولة</div>
+                                </label>
+                            </div>
+                        </div>
 
-    <a href="index.html">
-        الرئيسية
-    </a>
+                        <!-- Description -->
+                        <div class="form-group">
+                            <label class="ap-form-label">تفاصيل إضافية / وصف التبرع</label>
+                            <textarea id="description" name="description" class="ap-form-textarea" rows="4" placeholder="اكتب تفاصيل إضافية للجمعية لمساعدتها في الفرز والجمع..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="ap-settings-save-btn mt-2">
+                            <i class="ti ti-send"></i>
+                            <span>تقديم التبرع الآن</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- ══ Tab 3: Previous Donations ══ -->
+            <div class="ap-tab-pane" id="tab-donations">
+                <div class="ap-section-header">
+                    <div class="ap-section-title">
+                        <i class="ti ti-packages" style="color: var(--teal);"></i>
+                        قائمة تبرعاتي السابقة
+                        <span class="ap-count-badge" id="my-donations-count">0</span>
+                    </div>
+                </div>
 
-    <a href="charity.html">
-        الجمعيات
-    </a>
+                <div class="ap-table-wrap">
+                    <table class="ap-table">
+                        <thead>
+                            <tr>
+                                <th>تاريخ التبرع</th>
+                                <th>الحالة</th>
+                                <th>العدد</th>
+                                <th>المقاس</th>
+                                <th>النوع</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userdonationsTable">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="ap-empty-state d-none" id="donations-empty-state">
+                    <div class="ap-empty-icon"><i class="ti ti-box-off"></i></div>
+                    <div class="ap-empty-title">لا توجد تبرعات سابقة</div>
+                    <div class="ap-empty-desc">لم تقم بتقديم تبرعات حتى الآن. اضغط على زر تبرع جديد للبدء بالخير!</div>
+                </div>
+            </div>
+            
+            <!-- ══ Tab 4: Settings ══ -->
+            <div class="ap-tab-pane" id="tab-settings">
+                <div class="ap-section-header mb-4">
+                    <div class="ap-section-title">
+                        <i class="ti ti-settings" style="color: var(--teal);"></i>
+                        إعدادات الحساب الشخصي
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-4 align-items-start flex-column flex-md-row">
+                    <!-- Settings Sidebar -->
+                    <div class="cd-settings-sidebar">
+                        <button class="ap-nav-item active" onclick="switchSettingsTab('profile')" id="settings-tab-profile-btn">
+                            <span class="ap-nav-icon-wrap"><i class="ti ti-user"></i></span>
+                            <span>الملف الشخصي</span>
+                        </button>
+                        <button class="ap-nav-item" onclick="switchSettingsTab('password')" id="settings-tab-password-btn">
+                            <span class="ap-nav-icon-wrap"><i class="ti ti-shield-lock"></i></span>
+                            <span>كلمة المرور</span>
+                        </button>
+                    </div>
 
-    <a href="ai-chat.html">
-        المساعد الذكي
-    </a>
-
-    <a href="about.html">
-        عن المنصة
-    </a>
-
-    <a href="contact.html">
-        تواصل معنا
-    </a>
-
-    <a class="nav-btn-login"
-        href="login-register.html?mode=login">
-        دخول
-    </a>
-
-    <a class="nav-btn-signup"
-        href="login-register.html?mode=register">
-        حساب جديد
-    </a>
-
+                    <!-- Settings Mobile Tabs -->
+                    <div class="cd-settings-mobile-tabs w-100">
+                        <button class="cd-settings-mobile-tab active" onclick="switchSettingsTab('profile')" id="mobile-settings-tab-profile-btn">
+                            <i class="ti ti-user"></i>
+                            <span>الملف الشخصي</span>
+                        </button>
+                        <button class="cd-settings-mobile-tab" onclick="switchSettingsTab('password')" id="mobile-settings-tab-password-btn">
+                            <i class="ti ti-shield-lock"></i>
+                            <span>كلمة المرور</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Settings Form Area -->
+                    <div class="flex-grow-1 w-100">
+                        <!-- Profile Card -->
+                        <div class="ap-settings-card" id="settings-card-profile">
+                            <div class="ap-settings-card-title">
+                                <div class="ap-settings-icon bg-info text-white"><i class="ti ti-user"></i></div>
+                                <span>البيانات الشخصية</span>
+                            </div>
+                            
+                            <form id="profileSettingsForm" class="d-flex flex-column gap-3">
+                                <div class="ap-form-group">
+                                    <label class="ap-form-label">اسم المستخدم <span class="text-danger">*</span></label>
+                                    <input type="text" id="settingUserName" class="ap-form-input" required>
+                                    <div class="ap-field-error d-none" id="error-userName"></div>
+                                </div>
+                                <div class="ap-form-group">
+                                    <label class="ap-form-label">رقم الهاتف <span class="text-danger">*</span></label>
+                                    <input type="tel" id="settingPhone" class="ap-form-input" required>
+                                    <div class="ap-field-error d-none" id="error-phone"></div>
+                                </div>
+                                <div class="ap-form-group">
+                                    <label class="ap-form-label">العنوان <span class="text-danger">*</span></label>
+                                    <input type="text" id="settingAddress" class="ap-form-input" required>
+                                    <div class="ap-field-error d-none" id="error-address"></div>
+                                </div>
+                                <button type="submit" class="ap-settings-save-btn mt-2">
+                                    <i class="ti ti-device-floppy"></i>
+                                    <span>حفظ التعديلات</span>
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Password Card -->
+                        <div class="ap-settings-card d-none" id="settings-card-password">
+                            <div class="ap-settings-card-title">
+                                <div class="ap-settings-icon bg-danger text-white"><i class="ti ti-shield-lock"></i></div>
+                                <span>تغيير كلمة المرور</span>
+                            </div>
+                            
+                            <form id="passwordSettingsForm" class="d-flex flex-column gap-3">
+                                <div class="ap-form-group">
+                                    <label class="ap-form-label">كلمة المرور الحالية <span class="text-danger">*</span></label>
+                                    <input type="password" id="settingOldPassword" class="ap-form-input" required>
+                                    <div class="ap-field-error d-none" id="error-oldPassword"></div>
+                                </div>
+                                <div class="ap-form-group">
+                                    <label class="ap-form-label">كلمة المرور الجديدة <span class="text-danger">*</span></label>
+                                    <input type="password" id="settingNewPassword" class="ap-form-input" required>
+                                    <div class="ap-field-error d-none" id="error-newPassword"></div>
+                                </div>
+                                <div class="ap-form-group">
+                                    <label class="ap-form-label">تأكيد كلمة المرور الجديدة <span class="text-danger">*</span></label>
+                                    <input type="password" id="settingConfirmPassword" class="ap-form-input" required>
+                                    <div class="ap-field-error d-none" id="error-confirmPassword"></div>
+                                </div>
+                                <button type="submit" class="ap-settings-save-btn mt-2" style="background-color: var(--red);">
+                                    <i class="ti ti-shield-check"></i>
+                                    <span>تحديث كلمة المرور</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ══ Tab 5: AI Chat ══ -->
+            <div class="ap-tab-pane" id="tab-chat" style="height: calc(100vh - var(--header-h) - 48px);">
+                <iframe src="ai-chat.html" style="width: 100%; height: 100%; border: none; border-radius: 12px; background: var(--surface);"></iframe>
+            </div>
+            
+        </div>
+    </main>
 </div>
 
-<div class="my-dashboard">
+<!-- ══════ MODALS ══════ -->
 
-        <!-- Dashboard -->
-        <div class="container py-5">
-
-            <div class="row justify-content-center mb-4">
-                <div class="col-md-8 text-center">
-                    <h3 class="fw-bold">
-                        لوحة تحكم المتبرع
-                    </h3>
-                    <a href="donation.html" class="btn btn-warning fw-bold px-4 py-2 mt-2 shadow-sm text-white" style="background-color: var(--gold-500); border: none;">
-                        <i class="fas fa-heart me-1"></i> تبرع بملابس الآن
-                    </a>
-                </div>
+<!-- Donation Details Modal -->
+<div class="modal fade" id="donationDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content text-white" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 15px 45px rgba(0,0,0,0.3);">
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, var(--teal) 0%, #2e8e98 100%); display: flex; align-items: center; justify-content: space-between;">
+                <h5 class="modal-title fw-bold m-0"><i class="ti ti-info-circle me-1"></i> تفاصيل التبرع بالكامل</h5>
+                <button type="button" class="btn-close btn-close-white m-0" data-bs-dismiss="modal" aria-label="Close" style="filter: brightness(0) invert(1); opacity: 0.85;"></button>
             </div>
-
-            <div class="row justify-content-center g-4">
-
-                <div class="col-md-9">
-
-                    <!-- Donations Table -->
-                    <div class="card shadow-sm border-0 p-4">
-
-                        <h5 class="mb-4 fw-bold">
-                            تبرعاتي السابقة
-                        </h5>
-
-                        <div class="table-responsive">
-
-                            <table class="table align-middle text-center">
-
-                                <thead>
-                                    <tr>
-                                        <th>التاريخ</th>
-                                        <th>الحالة</th>
-                                        <th>العدد</th>
-                                        <th>المقاس</th>
-                                        <th>النوع</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody id="userdonationsTable">
-                                    <!-- Data From JS -->
-                                </tbody>
-
-                            </table>
-
-                        </div>
-
-                    </div>
-
-                    <!-- Smart Widget -->
-                    <div class="card shadow-sm p-4 mt-4 smart-widget">
-
-                        <h5 class="mb-4 mx-2">
-                            📊 حالة التبرعات في المنصة
-                        </h5>
-
-                        <!-- Trust Bar -->
-                        <div class="mb-4 my-1">
-
-                            <h6>
-                                نسبة قبول التبرعات
-                            </h6>
-
-                            <div class="progress">
-
-                                <div id="trustBar"
-                                    class="progress-bar bg-success"
-                                    style="width:0%">
-                                    0%
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <!-- Sizes -->
-                        <div class="text-center mb-4">
-
-                            <h6>
-                                📏 المقاسات المتبرع بها
-                            </h6>
-
-                            <div id="sizesBox"
-                                class="sizes-box mt-2">
-
-                            </div>
-
-                        </div>
-
-                        <!-- Chart -->
-                        <canvas id="donationChart"
-                            style="margin-top:20px;">
-                        </canvas>
-
-                    </div>
-
-                </div>
-
+            <div class="modal-body p-4" id="donationDetailsBody">
+                <!-- Dynamically populated -->
             </div>
-
         </div>
-
     </div>
+</div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Image Zooming Modal -->
+<div class="modal fade" id="imageZoomModal" tabindex="-1" aria-hidden="true" style="z-index: 10060;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background: transparent; border: none;">
+            <div class="modal-body p-0 position-relative">
+                <button type="button" class="btn-close btn-close-white position-absolute" data-bs-dismiss="modal" aria-label="Close" style="top: 15px; left: 15px; z-index: 10; font-size: 18px; filter: brightness(0) invert(1); opacity: 0.9; cursor: pointer;"></button>
+                <div class="zoom-modal-img-wrap">
+                    <img id="zoomedImageSrc" class="zoom-modal-img" src="" alt="صورة مكبرة">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Report Problem Modal -->
+<div class="modal fade" id="reportProblemModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 15px 45px rgba(0,0,0,0.3);">
+            <div class="modal-header border-0 p-3" style="border-bottom: 1px solid var(--border) !important;">
+                <h6 class="modal-title fw-bold text-danger"><i class="ti ti-alert-octagon me-1"></i> الإبلاغ عن مشكلة</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: brightness(0) invert(1); opacity: 0.8;"></button>
+            </div>
+            <div class="modal-body p-3">
+                <p style="font-size: 13px; color: var(--t3); line-height: 1.5; margin-bottom: 12px;">سيتم إرسال المشكلة مباشرة إلى لوحة تحكم الإدارة لمراجعتها ومساعدتك في حلها.</p>
+                <div class="ap-form-group">
+                    <label class="ap-form-label">وصف المشكلة بالتفصيل <span class="text-danger">*</span></label>
+                    <textarea id="reportProblemText" class="ap-form-textarea w-100" rows="4" placeholder="اشرح المشكلة أو العطل الذي يواجهك..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-3" style="border-top: 1px solid var(--border) !important;">
+                <button type="button" class="btn btn-sm btn-secondary px-3" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-sm btn-danger px-3" id="submitProblemReportBtn">إرسال البلاغ</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <script src="./script/donor.js"></script>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script src="script/main.js"></script>
-</body>
+<script src="script/donor.js"></script>
 
+</body>
 </html>
